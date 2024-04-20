@@ -5,6 +5,7 @@
 @import 'app/core/theme/light-theme/light-theme';
 @import 'variables';
 @import 'util';
+@import 'https://unpkg.com/@citolab/qti-components@latest/dist/item.minimal.css';
 
 @include mat-css-vars.init-material-css-vars(
     $typography-config: $custom-typography
