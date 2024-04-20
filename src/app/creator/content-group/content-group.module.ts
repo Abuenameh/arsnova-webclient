@@ -38,6 +38,7 @@ import { PublishContentGroupTemplateComponent } from '@app/creator/content-group
 import { ContentGroupTemplateEditingComponent } from '@app/standalone/content-group-template-editing/content-group-template-editing.component';
 import { AttributionsInfoComponent } from '@app/standalone/attributions-info/attributions-info.component';
 import { NumericContentFormComponent } from '@app/creator/content-group/content-editing/numeric-content-form/numeric-content-form.component';
+import { QtiContentFormComponent as QtiContentFormComponent } from '@app/creator/content-group/content-editing/qti-content-form/qti-content-form.component';
 
 @NgModule({
   declarations: [
@@ -61,6 +62,7 @@ import { NumericContentFormComponent } from '@app/creator/content-group/content-
     AnswerOptionListComponent,
     PublishContentGroupTemplateComponent,
     NumericContentFormComponent,
+    QtiContentFormComponent,
   ],
   imports: [
     ContentGroupRoutingModule,

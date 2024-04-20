@@ -1,0 +1,11 @@
+<div fxLayout="column" fxLayoutAlign="space-between" class="answer-container">
+  <form *ngIf="!givenAnswer">
+    <app-content-qti-answer
+      [content]="content"
+      (responsesChanged)="responses = $event"
+    ></app-content-qti-answer>
+  </form>
+  <!-- <div *ngIf="givenAnswer">
+    <p class="answer">{{ givenAnswer.body }}</p>
+  </div> -->
+</div>

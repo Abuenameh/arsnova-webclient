@@ -197,6 +197,12 @@
                 [isEditMode]="isEditMode"
               >
               </app-numeric-content-form>
+              <app-qti-content-form
+                *ngSwitchCase="ContentType.QTI"
+                [content]="content"
+                [isEditMode]="isEditMode"
+              >
+              </app-qti-content-form>
             </div>
           </div>
 

@@ -53,6 +53,10 @@
     *ngIf="content.format === 'NUMERIC' && numericContent"
     [content]="numericContent"
   ></app-content-numeric-answer>
+  <app-content-qti-answer
+    *ngIf="content.format === 'QTI' && qtiContent"
+    [content]="qtiContent"
+  ></app-content-qti-answer>
 </mat-card>
 <div *ngIf="content.format === 'FLASHCARD'">
   <h3>

@@ -53,6 +53,7 @@ export class ContentService extends AbstractEntityService<Content> {
     [ContentType.NUMERIC, 'numbers'],
     [ContentType.SLIDE, 'info'],
     [ContentType.FLASHCARD, 'school'],
+    [ContentType.QTI, 'quiz'],
   ]);
 
   constructor(

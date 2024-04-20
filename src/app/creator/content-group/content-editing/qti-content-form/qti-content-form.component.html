@@ -1,0 +1,19 @@
+<form>
+  <mat-form-field appearance="outline" class="no-field-hint">
+    <mat-label>{{ 'creator.content.qti-item' | transloco }}</mat-label>
+    <textarea
+      #answerInput
+      [disabled]="formDisabled"
+      [(ngModel)]="qtiItem"
+      [attr.aria-label]="'creator.content.a11y-enter-qti-item' | transloco"
+      id="body-input"
+      cdkAutosizeMaxRows="20"
+      cdkAutosizeMinRows="20"
+      matInput
+      cdkTextareaAutosize
+      maxlength="1000000"
+      name="questionInput"
+    ></textarea>
+  </mat-form-field>
+  <div class="form-spacer"></div>
+</form>

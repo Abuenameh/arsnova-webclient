@@ -9,4 +9,5 @@ export enum ContentType {
   NUMERIC = 'NUMERIC',
   SLIDE = 'SLIDE',
   FLASHCARD = 'FLASHCARD',
+  QTI = 'QTI',
 }

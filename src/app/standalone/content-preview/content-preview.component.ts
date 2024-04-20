@@ -23,7 +23,9 @@ import { ContentSortAnswerComponent } from '@app/standalone/content-answers/cont
 import { ContentTextAnswerComponent } from '@app/standalone/content-answers/content-text-answer/content-text-answer.component';
 import { ContentWordcloudAnswerComponent } from '@app/standalone/content-answers/content-wordcloud-answer/content-wordcloud-answer.component';
 import { ContentNumericAnswerComponent } from '@app/standalone/content-answers/content-numeric-answer/content-numeric-answer.component';
+import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/content-qti-answer/content-qti-answer.component';
 import { ContentNumeric } from '@app/core/models/content-numeric';
+import { ContentQti } from '@app/core/models/content-qti';
 
 @Component({
   selector: 'app-content-preview',
@@ -38,6 +40,7 @@ import { ContentNumeric } from '@app/core/models/content-numeric';
     ContentTextAnswerComponent,
     ContentWordcloudAnswerComponent,
     ContentNumericAnswerComponent,
+    ContentQtiAnswerComponent,
   ],
   providers: [provideTranslocoScope('creator')],
   templateUrl: './content-preview.component.html',
@@ -58,6 +61,7 @@ export class ContentPreviewComponent implements OnInit {
   additionalText?: string;
   assignablePoints?: number;
   numericContent?: ContentNumeric;
+  qtiContent?: ContentQti;
 
   constructor(
     private answerService: ContentAnswerService,
@@ -119,6 +123,8 @@ export class ContentPreviewComponent implements OnInit {
       this.additionalText = (this.content as ContentFlashcard).additionalText;
     } else if (format === ContentType.NUMERIC) {
       this.numericContent = this.content as ContentNumeric;
+    } else if (format === ContentType.QTI) {
+      this.qtiContent = this.content as ContentQti;
     }
     this.setSelectableAnswers();
     this.markdownFeatureset =

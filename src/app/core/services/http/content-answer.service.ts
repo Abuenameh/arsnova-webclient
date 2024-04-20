@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TextAnswer } from '@app/core/models/text-answer';
+import { QtiAnswer } from '@app/core/models/qti-answer';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -24,6 +25,7 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
   serviceApiUrl = {
     text: '/text',
     choice: '/choice',
+    qti: '/qti',
   };
 
   constructor(
@@ -58,6 +60,20 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
         httpOptions
       )
       .pipe(catchError(this.handleError('getAnswers', [])));
+  }
+
+  getResponses(roomId: string, contentId: string): Observable<QtiAnswer[]> {
+    const url = this.buildUri(this.apiUrl.find, roomId);
+    return this.http
+      .post<QtiAnswer[]>(
+        url,
+        {
+          properties: { contentId: contentId },
+          externalFilters: {},
+        },
+        httpOptions
+      )
+      .pipe(catchError(this.handleError('getResponses', [])));
   }
 
   getAnswersByUserIdContentIds(
@@ -141,6 +157,34 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
       );
   }
 
+  getQtiAnswerByContentIdUserIdCurrentRound(
+    roomId: string,
+    contentId: string,
+    userId: string
+  ): Observable<QtiAnswer> {
+    const url = this.buildUri(this.apiUrl.find, roomId);
+    return this.http
+      .post<QtiAnswer[]>(
+        url,
+        {
+          properties: {
+            contentId: contentId,
+            creatorId: userId,
+          },
+          externalFilters: {},
+        },
+        httpOptions
+      )
+      .pipe(
+        map((list) => list[0]),
+        catchError(
+          this.handleError<QtiAnswer>(
+            'getQtiAnswerByContentIdUserIdCurrentRound'
+          )
+        )
+      );
+  }
+
   addAnswerText(
     roomId: string,
     answerText: TextAnswer
@@ -197,6 +241,16 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
     ).pipe(catchError(this.handleError<NumericAnswer>('addAnswerNumeric')));
   }
 
+  addAnswerQti(roomId: string, answerQti: QtiAnswer): Observable<QtiAnswer> {
+    const url = this.buildUri('/', roomId);
+    return this.requestOnce<QtiAnswer>(
+      'POST',
+      url,
+      answerQti,
+      httpOptions
+    ).pipe(catchError(this.handleError<QtiAnswer>('addQtiAnswer')));
+  }
+
   addAnswer<T extends Answer>(roomId: string, answer: T): Observable<T> {
     const url = this.buildUri('/', roomId);
     return this.requestOnce<T>('POST', url, answer, httpOptions).pipe(
@@ -218,6 +272,13 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
       .pipe(
         catchError(this.handleError<ChoiceAnswer>(`getChoiceAnswer id=${id}`))
       );
+  }
+
+  getAnswerQti(roomId: string, id: string): Observable<QtiAnswer> {
+    const url = this.buildUri(`${this.serviceApiUrl.text}/${id}`, roomId);
+    return this.http
+      .get<QtiAnswer>(url)
+      .pipe(catchError(this.handleError<QtiAnswer>(`getAnswerQti id=${id}`)));
   }
 
   updateAnswerText(
@@ -246,6 +307,19 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
       .pipe(catchError(this.handleError<ChoiceAnswer>('updateChoiceAnswer')));
   }
 
+  updateAnswerQti(
+    roomId: string,
+    updatedAnswerQti: QtiAnswer
+  ): Observable<QtiAnswer> {
+    const connectionUrl = this.buildUri(
+      `${this.serviceApiUrl.qti}/${updatedAnswerQti.id}`,
+      roomId
+    );
+    return this.http
+      .put<QtiAnswer>(connectionUrl, updatedAnswerQti, httpOptions)
+      .pipe(catchError(this.handleError<QtiAnswer>('updateQtiAnswer')));
+  }
+
   deleteAnswerText(roomId: string, id: string): Observable<TextAnswer> {
     const url = this.buildUri(`/${id}`, roomId);
     return this.http
@@ -258,6 +332,13 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
     return this.http
       .delete<ChoiceAnswer>(url, httpOptions)
       .pipe(catchError(this.handleError<ChoiceAnswer>('deleteChoiceAnswer')));
+  }
+
+  deleteAnswerQti(roomId: string, id: string): Observable<QtiAnswer> {
+    const url = this.buildUri(`/${id}`, roomId);
+    return this.http
+      .delete<QtiAnswer>(url, httpOptions)
+      .pipe(catchError(this.handleError<QtiAnswer>('deleteQtiAnswer')));
   }
 
   hideAnswerText(roomId: string, id: string): Observable<void> {
