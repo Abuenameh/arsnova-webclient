@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CoreModule } from '@app/core/core.module';
 import { StatisticTextComponent } from './statistic-content/statistic-text/statistic-text.component';
 import { StatisticChoiceComponent } from './statistic-content/statistic-choice/statistic-choice.component';
@@ -28,6 +28,8 @@ import { LoadingButtonComponent } from '@app/standalone/loading-button/loading-b
 import { StatisticNumericComponent } from '@app/shared/statistic-content/statistic-numeric/statistic-numeric.component';
 import { StatisticInfoComponent } from '@app/standalone/statistic-info/statistic-info.component';
 import { TextOverflowClipComponent } from '@app/standalone/text-overflow-clip/text-overflow-clip.component';
+import { StatisticQtiComponent } from '@app/shared/statistic-content/statistic-qti/statistic-qti.component';
+import { SafeHtmlPipe } from '@app/core/pipes/safe-html.pipe';
 
 @NgModule({
   imports: [
@@ -45,6 +47,7 @@ import { TextOverflowClipComponent } from '@app/standalone/text-overflow-clip/te
     LoadingButtonComponent,
     StatisticInfoComponent,
     TextOverflowClipComponent,
+    SafeHtmlPipe,
   ],
   declarations: [
     StatisticChoiceComponent,
@@ -62,6 +65,7 @@ import { TextOverflowClipComponent } from '@app/standalone/text-overflow-clip/te
     StatisticPrioritizationComponent,
     MultipleRoundSelectionComponent,
     StatisticNumericComponent,
+    StatisticQtiComponent,
   ],
   exports: [
     LoadingIndicatorComponent,
@@ -78,5 +82,6 @@ import { TextOverflowClipComponent } from '@app/standalone/text-overflow-clip/te
     AnswerListComponent,
     MultipleRoundSelectionComponent,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SharedModule {}

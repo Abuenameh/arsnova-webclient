@@ -231,6 +231,16 @@
     [settings]="settings"
     [visualizationUnitChanged]="visualizationUnitChanged"
   ></app-statistic-numeric>
+  <app-statistic-qti
+    *ngIf="format === ContentType.QTI"
+    [content]="qtiContent"
+    [isPresentation]="isPresentation"
+    [directShow]="directShow"
+    (updateCounterEvent)="updateCounter($event)"
+    [active]="active"
+    [settings]="settings"
+    [visualizationUnitChanged]="visualizationUnitChanged"
+  ></app-statistic-qti>
 </div>
 <div *ngIf="content.format === ContentType.FLASHCARD && answersVisible">
   <div class="divider-space"></div>

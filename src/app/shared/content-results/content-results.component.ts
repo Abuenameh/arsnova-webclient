@@ -29,7 +29,9 @@ import { PresentationService } from '@app/core/services/util/presentation.servic
 import { Subject, takeUntil } from 'rxjs';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ContentNumeric } from '@app/core/models/content-numeric';
+import { ContentQti } from '@app/core/models/content-qti';
 import { StatisticNumericComponent } from '@app/shared/statistic-content/statistic-numeric/statistic-numeric.component';
+import { StatisticQtiComponent } from '@app/shared/statistic-content/statistic-qti/statistic-qti.component';
 
 @Component({
   selector: 'app-content-results',
@@ -49,6 +51,8 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
   prioritizationStatistic!: StatisticPrioritizationComponent;
   @ViewChild(StatisticNumericComponent)
   numericStatistic!: StatisticNumericComponent;
+  @ViewChild(StatisticQtiComponent)
+  qtiStatistic!: StatisticQtiComponent;
 
   destroyed$: Subject<void> = new Subject();
 
@@ -87,6 +91,7 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
   prioritizationContent!: ContentPrioritization;
   flashcardContent!: ContentFlashcard;
   numericContent!: ContentNumeric;
+  qtiContent!: ContentQti;
 
   constructor(
     private announceService: AnnounceService,
@@ -166,6 +171,7 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
       ContentType.PRIORITIZATION,
       ContentType.SORT,
       ContentType.NUMERIC,
+      ContentType.QTI,
     ].includes(this.content.format);
     this.initContentTypeObjects();
   }
@@ -186,6 +192,8 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
       this.flashcardContent = this.content as ContentFlashcard;
     } else if (this.content.format === ContentType.NUMERIC) {
       this.numericContent = this.content as ContentNumeric;
+    } else if (this.content.format === ContentType.QTI) {
+      this.qtiContent = this.content as ContentQti;
     }
   }
 
@@ -239,6 +247,9 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
       case ContentType.NUMERIC:
         this.answersVisible = this.numericStatistic.toggleAnswers();
         break;
+      case ContentType.QTI:
+        this.answersVisible = this.qtiStatistic.toggleAnswers();
+        break;
       default:
         this.answersVisible = this.choiceStatistic.toggleAnswers();
     }
@@ -250,6 +261,8 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
         this.sortStatistic.toggleCorrect();
       } else if (this.format === ContentType.NUMERIC) {
         this.numericStatistic.toggleCorrect();
+      } else if (this.format === ContentType.QTI) {
+        this.qtiStatistic.toggleCorrect();
       } else if (
         [ContentType.CHOICE, ContentType.BINARY].includes(this.format)
       ) {
@@ -291,6 +304,8 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
       noCorrect = !correctOptions || correctOptions.length === 0;
     } else if (this.format === ContentType.NUMERIC) {
       noCorrect = (this.content as ContentNumeric).correctNumber === undefined;
+    } else if (this.format === ContentType.QTI) {
+      noCorrect = false;
     }
     this.survey = noCorrect;
   }

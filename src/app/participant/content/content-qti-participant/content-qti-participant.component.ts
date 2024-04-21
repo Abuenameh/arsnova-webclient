@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import { QtiAnswer } from '@app/core/models/qti-answer';
+import { ContentType } from '@app/core/models/content-type.enum';
 import {
   AdvancedSnackBarTypes,
   NotificationService,
@@ -17,7 +18,7 @@ import {
   QtiAssessmentItem,
   VariableDeclaration,
   ResponseVariable,
-} from '@citolab/qti-components';
+} from '@abuenameh/qti-components';
 
 @Component({
   selector: 'app-content-qti-participant',
@@ -29,10 +30,12 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
   @Input({ required: true }) answer!: QtiAnswer;
   @Output() answerChanged = new EventEmitter<QtiAnswer>();
 
+  isLoading = true;
+  ContentType: typeof ContentType = ContentType;
+  hasAbstained = false;
   givenAnswer?: QtiAnswer;
 
   responses: ResponseVariable[] = [];
-  // textAnswer = '';
 
   constructor(
     protected answerService: ContentAnswerService,
@@ -57,6 +60,11 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
   init() {
     if (this.answer) {
       this.givenAnswer = this.answer;
+      this.responses = this.answer.responses.map((response) => ({
+        identifier: response.identifier,
+        value: response.value1 ? response.value1 : response.value2,
+        type: 'response',
+      }));
     }
     this.isLoading = false;
   }
@@ -83,8 +91,15 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
     const answer = new QtiAnswer(
       this.content.id,
       this.content.state.round,
-      this.responses
+      ContentType.QTI
     );
+    answer.responses = this.responses.map((response) => ({
+      identifier: response.identifier,
+      value1: !Array.isArray(response.value)
+        ? (response.value as string)
+        : null,
+      value2: Array.isArray(response.value) ? response.value : null,
+    }));
     this.answerService
       .addAnswerQti(this.content.roomId, answer)
       .subscribe((answer) => {
@@ -106,11 +121,16 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
   }
 
   abstain() {
-    const answer = new QtiAnswer(this.content.id, this.content.state.round);
+    const answer = new QtiAnswer(
+      this.content.id,
+      this.content.state.round,
+      ContentType.QTI
+    );
     this.answerService
-      .addAnswerText(this.content.roomId, answer)
+      .addAnswerQti(this.content.roomId, answer)
       .subscribe((answer) => {
         this.givenAnswer = answer;
+        this.hasAbstained = true;
         this.sendStatusToParent(answer);
       }),
       () => {

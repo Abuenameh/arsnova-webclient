@@ -17,6 +17,8 @@ import { FormComponent } from '@app/standalone/form/form.component';
 import { FormService } from '@app/core/services/util/form.service';
 import { ContentNumeric } from '@app/core/models/content-numeric';
 import { NumericAnswer } from '@app/core/models/numeric-answer';
+import { ContentQti } from '@app/core/models/content-qti';
+import { QtiAnswer } from '@app/core/models/qti-answer';
 
 @Component({
   selector: 'app-content-participant',
@@ -58,12 +60,14 @@ export class ContentParticipantComponent
   scaleContent!: ContentScale;
   wordloudContent!: ContentWordcloud;
   numericContent!: ContentNumeric;
+  qtiContent!: ContentQti;
 
   choiceAnswer!: ChoiceAnswer;
   prioritizationAnswer!: PrioritizationAnswer;
   wordcloudAnswer!: MultipleTextsAnswer;
   textAnswer!: TextAnswer;
   numericAnswer!: NumericAnswer;
+  qtiAnswer!: QtiAnswer;
 
   constructor(protected formService: FormService) {
     super(formService);
@@ -100,6 +104,8 @@ export class ContentParticipantComponent
       this.choiceAnswer = this.answer as ChoiceAnswer;
     } else if (this.content.format === ContentType.NUMERIC) {
       this.numericAnswer = this.answer as NumericAnswer;
+    } else if (this.content.format === ContentType.QTI) {
+      this.qtiAnswer = this.answer as QtiAnswer;
     }
   }
 
@@ -137,6 +143,8 @@ export class ContentParticipantComponent
       this.flashcardContent = this.content as ContentFlashcard;
     } else if (this.content.format === ContentType.NUMERIC) {
       this.numericContent = this.content as ContentNumeric;
+    } else if (this.content.format === ContentType.QTI) {
+      this.qtiContent = this.content as ContentQti;
     }
   }
 
@@ -158,6 +166,8 @@ export class ContentParticipantComponent
       this.hasAbstained = !(answer as PrioritizationAnswer).assignedPoints;
     } else if (answer.format === ContentType.NUMERIC) {
       this.hasAbstained = !(answer as NumericAnswer).selectedNumber;
+    } else if (answer.format === ContentType.QTI) {
+      this.hasAbstained = !((answer as QtiAnswer).responses?.length > 0);
     } else {
       this.hasAbstained = !(answer as ChoiceAnswer).selectedChoiceIndexes;
     }

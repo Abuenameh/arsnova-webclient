@@ -1,0 +1,13 @@
+<div fxLayout="column">
+  <qti-assessment-item #qtiItem>
+    <div [outerHTML]="content.qtiItem | safeHtml"></div>
+  </qti-assessment-item>
+</div>
+<div class="visually-hidden">
+  <div id="show-correct">
+    {{ 'participant.statistic.a11y-answer-indicator' | transloco }}
+  </div>
+  <div id="show-chart">
+    {{ 'participant.statistic.a11y-show-chart' | transloco }}
+  </div>
+</div>

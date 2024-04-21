@@ -3,19 +3,17 @@ import {
   EventEmitter,
   Input,
   Output,
-  ElementRef,
-  ViewChild,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { CoreModule } from '@app/core/core.module';
-// import { QtiAnswer } from '@app/core/models/qti-answer';
+import { QtiAnswer } from '@app/core/models/qti-answer';
 import { ContentQti } from '@app/core/models/content-qti';
 import { SafeHtmlPipe } from '@app/core/pipes/safe-html.pipe';
 import {
   QtiAssessmentItem,
   VariableDeclaration,
   ResponseVariable,
-} from '@citolab/qti-components';
+} from '@abuenameh/qti-components';
 
 @Component({
   selector: 'app-content-qti-answer',
@@ -26,26 +24,26 @@ import {
 })
 export class ContentQtiAnswerComponent {
   @Input({ required: true }) content!: ContentQti;
-  // @Input() answer? : QtiAnswer;
-  // @Input() responses : ResponseVariable[] = [];
+  @Input() answer?: QtiAnswer;
+  @Input() isDisabled = false;
+  @Input() responses: ResponseVariable[] = [];
   @Output() responsesChanged = new EventEmitter<ResponseVariable[]>();
-  @ViewChild('qtiItem') qtiItem?: ElementRef<QtiAssessmentItem>;
+
+  itemConnected(event: CustomEvent) {
+    const qtiItem = event.target as QtiAssessmentItem;
+    qtiItem.variables = this.responses;
+  }
 
   interactionChanged(event: CustomEvent) {
-    if (this.qtiItem) {
-      const responses = this.qtiItem.nativeElement.variables
-        .filter(
-          (variable: VariableDeclaration<string | string[] | null>) =>
-            variable.type == 'response' && variable.identifier !== 'numAttempts'
-        )
-        .map((variable: VariableDeclaration<string | string[] | null>) =>
-          this.qtiItem!.nativeElement.getResponse(variable.identifier)
-        );
-      this.responsesChanged.emit(responses);
-      console.log(responses);
-      console.log(
-        responses.some((response: ResponseVariable) => response.value == null)
+    const qtiItem = event.target as QtiAssessmentItem;
+    const responses = qtiItem.variables
+      .filter(
+        (variable: VariableDeclaration<string | string[] | null>) =>
+          variable.type == 'response' && variable.identifier !== 'numAttempts'
+      )
+      .map((variable: VariableDeclaration<string | string[] | null>) =>
+        qtiItem!.getResponse(variable.identifier)
       );
-    }
+    this.responsesChanged.emit(responses);
   }
 }

@@ -1,8 +1,7 @@
 <!-- <mat-form-field appearance="outline"> -->
 <qti-assessment-item
-  #qtiItem
-  id="qtiItem"
   (qti-interaction-changed)="interactionChanged($any($event))"
+  (qti-assessment-item-connected)="itemConnected($any($event))"
 >
   <div [outerHTML]="content.qtiItem | safeHtml"></div>
 </qti-assessment-item>

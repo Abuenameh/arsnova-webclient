@@ -132,6 +132,15 @@
                 [correctOptionsPublished]="correctOptionsPublished"
               >
               </app-content-numeric-participant>
+              <app-content-qti-participant
+                *ngIf="content.format === ContentType.QTI"
+                [answer]="qtiAnswer"
+                [content]="qtiContent"
+                [isDisabled]="formDisabled || alreadySent"
+                [sendEvent]="sendEvent"
+                (answerChanged)="forwardAnswerMessage($event)"
+              >
+              </app-content-qti-participant>
             </div>
             <div fxLayout="row-reverse" fxLayoutAlign="end">
               <div

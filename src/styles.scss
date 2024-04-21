@@ -5,7 +5,12 @@
 @import 'app/core/theme/light-theme/light-theme';
 @import 'variables';
 @import 'util';
-@import 'https://unpkg.com/@citolab/qti-components@latest/dist/item.minimal.css';
+
+// @import 'https://unpkg.com/@abuenameh/qti-components@next/dist/item.css';
+
+// * {
+//   box-sizing: content-box;
+// }
 
 @include mat-css-vars.init-material-css-vars(
     $typography-config: $custom-typography

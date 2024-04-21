@@ -21,6 +21,7 @@
     "e2e": "ng e2e"
   },
   "dependencies": {
+    "@abuenameh/qti-components": "^6.7.1-29-abu-0",
     "@angular/animations": "17.3.4",
     "@angular/cdk": "17.3.3",
     "@angular/cli": "17.3.4",
@@ -34,7 +35,6 @@
     "@angular/platform-browser-dynamic": "17.3.4",
     "@angular/router": "17.3.4",
     "@angular/service-worker": "17.3.4",
-    "@citolab/qti-components": "^6.7.0",
     "@fontsource/roboto": "5.0.12",
     "@ngneat/transloco": "6.0.4",
     "@stomp/rx-stomp": "2.0.0",
