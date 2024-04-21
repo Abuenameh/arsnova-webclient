@@ -1,5 +1,5 @@
 export interface QtiResponse {
   identifier: string;
-  value1: string | null;
-  value2: string[] | null;
+  value: string | null;
+  values: string[] | null;
 }

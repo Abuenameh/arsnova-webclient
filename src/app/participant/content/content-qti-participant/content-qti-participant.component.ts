@@ -62,7 +62,7 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
       this.givenAnswer = this.answer;
       this.responses = this.answer.responses.map((response) => ({
         identifier: response.identifier,
-        value: response.value1 ? response.value1 : response.value2,
+        value: response.value ? response.value : response.values,
         type: 'response',
       }));
     }
@@ -95,10 +95,8 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
     );
     answer.responses = this.responses.map((response) => ({
       identifier: response.identifier,
-      value1: !Array.isArray(response.value)
-        ? (response.value as string)
-        : null,
-      value2: Array.isArray(response.value) ? response.value : null,
+      value: !Array.isArray(response.value) ? (response.value as string) : null,
+      values: Array.isArray(response.value) ? response.value : null,
     }));
     this.answerService
       .addAnswerQti(this.content.roomId, answer)
