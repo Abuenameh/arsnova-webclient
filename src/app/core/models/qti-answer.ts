@@ -4,4 +4,5 @@ import { QtiResponse } from './qti-response';
 
 export class QtiAnswer extends Answer {
   responses: QtiResponse[] = [];
+  correct: boolean = false;
 }

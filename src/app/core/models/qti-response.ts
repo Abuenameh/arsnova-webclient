@@ -1,5 +1,9 @@
+import { Cardinality, BaseType } from '@abuenameh/qti-components';
+
 export interface QtiResponse {
   identifier: string;
-  value: string | null;
-  values: string[] | null;
+  cardinality: Cardinality;
+  baseType: BaseType;
+  value: string;
+  values: string[];
 }

@@ -25,6 +25,7 @@ export enum StatisticType {
   TEXT = 'T',
   SLIDE = 'I',
   FLASHCARD = 'F',
+  QTI = 'Q',
 }
 
 export class ContentStatistic {
@@ -149,6 +150,32 @@ export class StatisticListComponent implements OnInit {
               abstentions = answers.filter((a) => a.body === undefined).length;
               count = answers.length - abstentions;
               type = StatisticType.TEXT;
+              this.addNewStatistic(
+                i,
+                new ContentStatistic(
+                  content,
+                  type,
+                  percent,
+                  count,
+                  abstentions,
+                  round
+                )
+              );
+            });
+          break;
+        case ContentType.QTI:
+          this.contentAnswerService
+            .getResponses(this.contentGroup.roomId, content.id)
+            .subscribe((answers) => {
+              abstentions = answers.filter(
+                (a) => a.responses.length === 0
+              ).length;
+              count = answers.length - abstentions;
+              if (count > 0) {
+                percent =
+                  (answers.filter((a) => a.correct).length / count) * 100;
+              }
+              type = StatisticType.QTI;
               this.addNewStatistic(
                 i,
                 new ContentStatistic(

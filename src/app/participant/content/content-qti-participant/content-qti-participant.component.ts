@@ -62,7 +62,10 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
       this.givenAnswer = this.answer;
       this.responses = this.answer.responses.map((response) => ({
         identifier: response.identifier,
-        value: response.value ? response.value : response.values,
+        cardinality: response.cardinality,
+        baseType: response.baseType,
+        value:
+          response.cardinality === 'single' ? response.value : response.values,
         type: 'response',
       }));
     }
@@ -95,8 +98,12 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
     );
     answer.responses = this.responses.map((response) => ({
       identifier: response.identifier,
-      value: !Array.isArray(response.value) ? (response.value as string) : null,
-      values: Array.isArray(response.value) ? response.value : null,
+      cardinality: response.cardinality || 'single',
+      baseType: response.baseType || 'identifier',
+      value:
+        response.cardinality === 'single' ? (response.value as string) : '',
+      values:
+        response.cardinality !== 'single' ? (response.value as string[]) : [''],
     }));
     this.answerService
       .addAnswerQti(this.content.roomId, answer)

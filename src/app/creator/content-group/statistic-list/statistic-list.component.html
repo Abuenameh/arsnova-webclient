@@ -99,7 +99,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let cp" (click)="goToStats(cp.content.id)">
       {{
-        cp.type === types.CHOICE && cp.percent > -1
+        [types.CHOICE, types.QTI].indexOf(cp.type) > -1 && cp.percent > -1
           ? cp.percent.toFixed() + ' %'
           : '-'
       }}
