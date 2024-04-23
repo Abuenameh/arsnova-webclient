@@ -59,6 +59,7 @@ const excludedElementTypes = new Map<string, (el: Element) => boolean>([
   ],
   ['TEXTAREA', () => true],
   ['SELECT', () => true],
+  ['QTI-INTERACTION-MARKUP', () => true],
 ]);
 
 @Injectable()
