@@ -245,7 +245,8 @@
     "publishing-mode-description-single": "Only selected content is published.",
     "content-is-locked": "Content is locked",
     "to-publish-content": "to publish content",
-    "publish-current-content": "Publish current content"
+    "publish-current-content": "Publish current content",
+    "qti-item": "QTI item"
   },
   "survey": {
     "a11y-stop-survey": "Stops the live feedback.",
