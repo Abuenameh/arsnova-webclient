@@ -4,6 +4,7 @@ export enum AnswerResultType {
   CORRECT = 'CORRECT',
   WRONG = 'WRONG',
   NEUTRAL = 'NEUTRAL',
+  PARTIALLY_CORRECT = 'PARTIALLY_CORRECT',
 }
 
 export interface AnswerResult {

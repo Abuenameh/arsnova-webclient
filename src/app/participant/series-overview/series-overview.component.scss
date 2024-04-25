@@ -27,6 +27,10 @@ $icon-container-size: 40px;
   color: var(--success);
 }
 
+.partially-correct:not(.answered) {
+  color: var(--warn-soft);
+}
+
 .wrong:not(.answered) {
   color: var(--warn);
 }

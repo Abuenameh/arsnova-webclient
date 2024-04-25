@@ -58,6 +58,7 @@
     "answer-state-unanswered": "Unanswered",
     "answer-state-abstained": "Abstained",
     "answer-state-correct": "Correct",
+    "answer-state-partially_correct": "Partially correct",
     "answer-state-wrong": "Wrong",
     "answer-state-neutral": "Answered",
     "continue-answering": "Continue",

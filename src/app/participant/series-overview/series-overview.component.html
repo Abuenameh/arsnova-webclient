@@ -80,11 +80,15 @@
               "
               [ngClass]="{
                 correct: content.state === resultTypes.CORRECT,
+                'partially-correct':
+                  content.state === resultTypes.PARTIALLY_CORRECT,
                 wrong: content.state === resultTypes.WRONG,
                 answered:
-                  ![resultTypes.CORRECT, resultTypes.WRONG].includes(
-                    content.state
-                  ) || !group.correctOptionsPublished,
+                  ![
+                    resultTypes.CORRECT,
+                    resultTypes.PARTIALLY_CORRECT,
+                    resultTypes.WRONG
+                  ].includes(content.state) || !group.correctOptionsPublished,
                 primary: hasAnsweredState(content.state)
               }"
               [matTooltip]="

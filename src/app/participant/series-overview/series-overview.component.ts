@@ -298,6 +298,8 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
     switch (state) {
       case AnswerResultType.CORRECT:
         return 'check';
+      case AnswerResultType.PARTIALLY_CORRECT:
+        return 'check';
       case AnswerResultType.WRONG:
         return 'close';
       case AnswerResultType.UNANSWERED:
