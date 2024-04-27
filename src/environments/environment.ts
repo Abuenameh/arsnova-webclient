@@ -12,5 +12,5 @@ export const environment = {
     commitHash: '0000000000000000000000000000000000000000',
     commitDate: '',
   },
-  features: ['extension-app-logo'],
+  features: ['extension-app-logo', 'FOCUS_MODE', 'CONTENT_GROUP_TEMPLATES'],
 };
