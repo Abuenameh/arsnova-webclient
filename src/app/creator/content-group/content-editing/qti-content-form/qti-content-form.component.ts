@@ -33,7 +33,10 @@ export class QtiContentFormComponent
 {
   @Input() content?: Content;
   @Input() isEditMode = false;
+  @Input() correctAnswerSelection = false;
+  @Input() isQuiz = false;
 
+  noCorrect = false;
   qtiItem = '';
 
   constructor(
@@ -48,6 +51,9 @@ export class QtiContentFormComponent
   ngOnInit(): void {
     if (this.isEditMode) {
       this.qtiItem = (this.content as ContentQti).qtiItem;
+    }
+    if (!this.correctAnswerSelection) {
+      this.noCorrect = !this.isQuiz;
     }
   }
 

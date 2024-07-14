@@ -313,6 +313,7 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
           ContentType.SORT,
           ContentType.NUMERIC,
           ContentType.SLIDE,
+          ContentType.QTI,
         ];
       case GroupType.SURVEY:
         return [
@@ -324,6 +325,7 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
           ContentType.PRIORITIZATION,
           ContentType.NUMERIC,
           ContentType.SLIDE,
+          ContentType.QTI,
         ];
       default:
         return [ContentType.FLASHCARD, ContentType.SLIDE];

@@ -11,9 +11,10 @@ export class ContentQti extends Content {
     body: string = '',
     qtiItem: string = '',
     groups: string[] = [],
-    format: ContentType = ContentType.QTI
+    format: ContentType = ContentType.QTI,
+    duration?: number
   ) {
-    super(roomId, subject, body, groups, format, {});
+    super(roomId, subject, body, groups, format, duration);
     this.qtiItem = qtiItem;
   }
 }
