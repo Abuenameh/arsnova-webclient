@@ -30,7 +30,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ContentNumeric } from '@app/core/models/content-numeric';
 import { ContentQti } from '@app/core/models/content-qti';
-import { StatisticQtiComponent } from '@app/shared/statistic-content/statistic-qti/statistic-qti.component';
+import { StatisticQtiComponent } from '@app/standalone/statistic-content/statistic-qti/statistic-qti.component';
 import { StatisticNumericComponent } from '@app/standalone/statistic-content/statistic-numeric/statistic-numeric.component';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { MatDivider } from '@angular/material/divider';
@@ -68,6 +68,7 @@ import { ExtensionPointModule } from '@projects/extension-point/src/public-api';
     StatisticWordcloudComponent,
     StatisticPrioritizationComponent,
     StatisticNumericComponent,
+    StatisticQtiComponent,
     MatDivider,
     TranslocoPipe,
   ],

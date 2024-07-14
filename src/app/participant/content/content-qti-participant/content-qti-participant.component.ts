@@ -13,6 +13,7 @@ import { GlobalStorageService } from '@app/core/services/util/global-storage.ser
 import { ContentParticipantBaseComponent } from '@app/participant/content/content-participant-base.component';
 import { ContentQti } from '@app/core/models/content-qti';
 import { FormService } from '@app/core/services/util/form.service';
+import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/content-qti-answer/content-qti-answer.component';
 import { take } from 'rxjs';
 import {
   QtiAssessmentItem,
@@ -24,10 +25,13 @@ import {
   selector: 'app-content-qti-participant',
   templateUrl: './content-qti-participant.component.html',
   // styleUrls: ['./content-qti-participant.component.scss'],
+  standalone: true,
+  imports: [ContentQtiAnswerComponent],
 })
 export class ContentQtiParticipantComponent extends ContentParticipantBaseComponent {
   @Input({ required: true }) content!: ContentQti;
   @Input({ required: true }) answer!: QtiAnswer;
+  @Input() correctOptionsPublished = false;
   @Output() answerChanged = new EventEmitter<QtiAnswer>();
 
   isLoading = true;

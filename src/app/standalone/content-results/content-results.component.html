@@ -235,6 +235,17 @@
       [visualizationUnitChanged]="visualizationUnitChanged"
     ></app-statistic-numeric>
   }
+  @if (format === ContentType.QTI) {
+    <app-statistic-qti
+      [content]="qtiContent"
+      [isPresentation]="isPresentation"
+      [directShow]="directShow"
+      (updateCounterEvent)="updateCounter($event)"
+      [active]="active"
+      [settings]="settings"
+      [visualizationUnitChanged]="visualizationUnitChanged"
+    ></app-statistic-qti>
+  }
 </div>
 @if (content.format === ContentType.FLASHCARD && answersVisible) {
   <div>

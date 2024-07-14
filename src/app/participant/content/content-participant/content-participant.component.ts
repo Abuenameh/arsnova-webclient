@@ -49,6 +49,7 @@ import { ContentSortParticipantComponent } from '@app/participant/content/conten
 import { ContentTextParticipantComponent } from '@app/participant/content/content-text-participant/content-text-participant.component';
 import { ContentScaleParticipantComponent } from '@app/participant/content/content-scale-participant/content-scale-participant.component';
 import { ContentChoiceParticipantComponent } from '@app/participant/content/content-choice-participant/content-choice-participant.component';
+import { ContentQtiParticipantComponent } from '@app/participant/content/content-qti-participant/content-qti-participant.component';
 import { FormsModule } from '@angular/forms';
 import { CountdownTimerComponent } from '@app/standalone/countdown-timer/countdown-timer.component';
 import { ExtensionPointModule } from '@projects/extension-point/src/lib/extension-point.module';
@@ -95,6 +96,7 @@ interface ContentActionTab {
     ContentWordcloudParticipantComponent,
     ContentPrioritizationParticipantComponent,
     ContentNumericParticipantComponent,
+    ContentQtiParticipantComponent,
     NgClass,
     MatButton,
     LoadingButtonComponent,

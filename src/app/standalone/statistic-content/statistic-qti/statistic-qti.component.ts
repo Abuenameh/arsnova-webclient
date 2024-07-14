@@ -1,36 +1,43 @@
 import {
   Component,
+  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
   ElementRef,
   ViewChild,
+  CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ContentQti } from '@app/core/models/content-qti';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
 import {
   ABSTENTION_SIGN,
   StatisticContentBaseComponent,
-} from '@app/shared/statistic-content/statistic-content-base';
+} from '@app/standalone/statistic-content/statistic-content-base';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { takeUntil } from 'rxjs';
 import { EventService } from '@app/core/services/util/event.service';
 import { PresentationService } from '@app/core/services/util/presentation.service';
+import { SafeHtmlPipe } from '@app/core/pipes/safe-html.pipe';
 import { QtiAssessmentItem } from '@abuenameh/qti-components';
 
 @Component({
   selector: 'app-statistic-qti',
   templateUrl: './statistic-qti.component.html',
   styleUrls: ['./statistic-qti.component.scss'],
+  standalone: true,
+  imports: [TranslocoPipe, SafeHtmlPipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class StatisticQtiComponent
   extends StatisticContentBaseComponent
   implements OnInit, OnDestroy
 {
   @Input({ required: true }) content!: ContentQti;
+  @Input({ required: true }) visualizationUnitChanged!: EventEmitter<boolean>;
   @Input() directShow = false;
   @ViewChild('qtiItem') qtiItem?: ElementRef<QtiAssessmentItem>;
 
