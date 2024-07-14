@@ -5,7 +5,6 @@ import { CoreModule } from '@app/core/core.module';
 import { ContentChoiceParticipantComponent } from './content/content-choice-participant/content-choice-participant.component';
 import { ContentTextParticipantComponent } from './content/content-text-participant/content-text-participant.component';
 import { ContentQtiParticipantComponent } from './content/content-qti-participant/content-qti-participant.component';
-import { SharedModule } from '@app/shared/shared.module';
 import { ParticipantContentCarouselPageComponent } from './participant-content-carousel-page/participant-content-carousel-page.component';
 import { TranslocoModule, provideTranslocoScope } from '@ngneat/transloco';
 import { CdkStepperModule } from '@angular/cdk/stepper';
@@ -31,6 +30,15 @@ import { ContentSortAnswerComponent } from '@app/standalone/content-answers/cont
 import { ContentTextAnswerComponent } from '@app/standalone/content-answers/content-text-answer/content-text-answer.component';
 import { ContentNumericParticipantComponent } from '@app/participant/content/content-numeric-participant/content-numeric-participant.component';
 import { ContentNumericAnswerComponent } from '@app/standalone/content-answers/content-numeric-answer/content-numeric-answer.component';
+import { CountdownTimerComponent } from '@app/standalone/countdown-timer/countdown-timer.component';
+import { ContentWaitingComponent } from '@app/standalone/content-waiting/content-waiting.component';
+import { LeaderboardPageComponent } from '@app/participant/leaderboard-page/leaderboard-page.component';
+import { LeaderboardComponent } from '@app/standalone/leaderboard/leaderboard.component';
+import { ContentLeaderboardComponent } from '@app/standalone/content-leaderboard/content-leaderboard.component';
+import { ContentResultsComponent } from '@app/standalone/content-results/content-results.component';
+import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
+import { NavBarComponent } from '@app/standalone/nav-bar/nav-bar.component';
+import { DividerComponent } from '@app/standalone/divider/divider.component';
 import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/content-qti-answer/content-qti-answer.component';
 
 @NgModule({
@@ -38,7 +46,7 @@ import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/conte
     extensions,
     ParticipantRoutingModule,
     CoreModule,
-    SharedModule,
+    ContentResultsComponent,
     TranslocoModule,
     StepperComponent,
     CdkStepperModule,
@@ -54,8 +62,13 @@ import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/conte
     ContentWordcloudAnswerComponent,
     ContentNumericAnswerComponent,
     ContentQtiAnswerComponent,
-  ],
-  declarations: [
+    CountdownTimerComponent,
+    ContentWaitingComponent,
+    LeaderboardComponent,
+    ContentLeaderboardComponent,
+    LoadingIndicatorComponent,
+    NavBarComponent,
+    DividerComponent,
     ContentChoiceParticipantComponent,
     ContentScaleParticipantComponent,
     ContentTextParticipantComponent,
@@ -68,6 +81,7 @@ import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/conte
     ParticipantPageComponent,
     InfoChartComponent,
     ContentNumericParticipantComponent,
+    LeaderboardPageComponent,
     ContentQtiParticipantComponent,
   ],
   providers: [provideTranslocoScope('participant'), ContentCarouselService],

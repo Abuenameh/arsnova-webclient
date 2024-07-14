@@ -1,0 +1,12 @@
+<app-base-card [showShadow]="showCard">
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+    <mat-icon class="title-icon">emoji_events</mat-icon>
+    <h1>{{ 'content.leaderboard' | transloco }}</h1>
+  </div>
+  @if (isLoading) {
+    <app-loading-indicator></app-loading-indicator>
+  }
+  @if (!isLoading) {
+    <app-leaderboard [leaderboardItems]="leaderboardItems"></app-leaderboard>
+  }
+</app-base-card>

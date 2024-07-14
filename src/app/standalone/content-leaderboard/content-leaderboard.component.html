@@ -1,0 +1,91 @@
+@if (dataSource) {
+  <table mat-table [dataSource]="dataSource" matSort>
+    <ng-container matColumnDef="position">
+      <th mat-header-cell *matHeaderCellDef class="position">
+        <span> # </span>
+      </th>
+      <td
+        [ngClass]="{
+          'bold-text primary bg-dark': element.alias.id === aliasId,
+        }"
+        mat-cell
+        *matCellDef="let element"
+        class="position"
+      >
+        {{ element.position | ordinal }}
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>
+        <span>
+          {{ 'participant.content.leaderboard-name' | transloco }}
+        </span>
+      </th>
+      <td
+        mat-cell
+        class="alias"
+        [ngClass]="{
+          'bold-text primary bg-dark': element.alias.id === aliasId,
+        }"
+        *matCellDef="let element"
+      >
+        {{ element.alias.alias }}
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="score">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header start="desc">
+        <span>
+          {{ 'participant.content.leaderboard-points' | transloco }}
+        </span>
+      </th>
+      <td
+        mat-cell
+        [ngClass]="{
+          'bold-text primary bg-dark': element.alias.id === aliasId,
+        }"
+        *matCellDef="let element"
+      >
+        <div fxLayout.xs="column">
+          <span>
+            {{ element.score }}
+          </span>
+          <span
+            class="less-visible"
+            [matTooltip]="
+              (element.currentPoints
+                ? element.correct
+                  ? 'participant.content.answered-correctly'
+                  : 'participant.content.partially-answered-correctly'
+                : 'participant.content.answered-incorrectly'
+              ) | transloco
+            "
+            >{{ '(+' + element.currentPoints + ')' }}</span
+          >
+        </div>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="currentDuration" *ngIf="contentDuration">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        [matTooltip]="'participant.content.leaderboard-duration' | transloco"
+      >
+        <mat-icon class="timer-icon">timer</mat-icon>
+      </th>
+      <td
+        mat-cell
+        [ngClass]="{
+          'bold-text primary bg-dark': element.alias.id === aliasId,
+        }"
+        *matCellDef="let element"
+      >
+        <span class="less-visible">{{
+          element.currentDuration | duration: contentDuration
+        }}</span>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+}

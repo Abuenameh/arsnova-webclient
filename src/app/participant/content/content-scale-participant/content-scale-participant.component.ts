@@ -16,10 +16,13 @@ import { AnswerOption } from '@app/core/models/answer-option';
 import { SelectableAnswer } from '@app/core/models/selectable-answer';
 import { FormService } from '@app/core/services/util/form.service';
 import { take } from 'rxjs';
+import { ContentChoiceAnswerComponent } from '@app/standalone/content-answers/content-choice-answer/content-choice-answer.component';
 
 @Component({
   selector: 'app-content-scale-participant',
   templateUrl: './content-scale-participant.component.html',
+  standalone: true,
+  imports: [ContentChoiceAnswerComponent],
 })
 export class ContentScaleParticipantComponent extends ContentParticipantBaseComponent {
   @Input({ required: true }) content!: ContentScale;

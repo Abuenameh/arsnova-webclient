@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { Answer } from '@app/core/models/answer';
 import { Content } from '@app/core/models/content';
@@ -19,17 +27,91 @@ import { ContentNumeric } from '@app/core/models/content-numeric';
 import { NumericAnswer } from '@app/core/models/numeric-answer';
 import { ContentQti } from '@app/core/models/content-qti';
 import { QtiAnswer } from '@app/core/models/qti-answer';
+import { EventService } from '@app/core/services/util/event.service';
+import { EntityChangeNotification } from '@app/core/models/events/entity-change-notification';
+import { takeUntil } from 'rxjs';
+import { ContentService } from '@app/core/services/http/content.service';
+import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { NotificationService } from '@app/core/services/util/notification.service';
+import { RoomUserAlias } from '@app/core/models/room-user-alias';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location, NgClass } from '@angular/common';
+import { LeaderboardPageComponent } from '@app/participant/leaderboard-page/leaderboard-page.component';
+import { DividerComponent } from '@app/standalone/divider/divider.component';
+import { ContentResultsComponent } from '@app/standalone/content-results/content-results.component';
+import { MatTooltip } from '@angular/material/tooltip';
+import { LoadingButtonComponent } from '@app/standalone/loading-button/loading-button.component';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { ContentNumericParticipantComponent } from '@app/participant/content/content-numeric-participant/content-numeric-participant.component';
+import { ContentPrioritizationParticipantComponent } from '@app/participant/content/content-prioritization-participant/content-prioritization-participant.component';
+import { ContentWordcloudParticipantComponent } from '@app/participant/content/content-wordcloud-participant/content-wordcloud-participant.component';
+import { ContentSortParticipantComponent } from '@app/participant/content/content-sort-participant/content-sort-participant.component';
+import { ContentTextParticipantComponent } from '@app/participant/content/content-text-participant/content-text-participant.component';
+import { ContentScaleParticipantComponent } from '@app/participant/content/content-scale-participant/content-scale-participant.component';
+import { ContentChoiceParticipantComponent } from '@app/participant/content/content-choice-participant/content-choice-participant.component';
+import { FormsModule } from '@angular/forms';
+import { CountdownTimerComponent } from '@app/standalone/countdown-timer/countdown-timer.component';
+import { ExtensionPointModule } from '@projects/extension-point/src/lib/extension-point.module';
+import { MatIcon } from '@angular/material/icon';
+import { MatTabNav, MatTabLink, MatTabNavPanel } from '@angular/material/tabs';
+import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
+import { ContentWaitingComponent } from '@app/standalone/content-waiting/content-waiting.component';
+import { FlexModule } from '@angular/flex-layout';
+import { MatCard } from '@angular/material/card';
+import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
+import { CoreModule } from '@app/core/core.module';
+import { ContentGroup, GroupType } from '@app/core/models/content-group';
+
+interface ContentActionTab {
+  route: string;
+  label: string;
+  hotkey: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-content-participant',
   templateUrl: './content-participant.component.html',
   styleUrls: ['./content-participant.component.scss'],
+  standalone: true,
+  imports: [
+    CoreModule,
+    LoadingIndicatorComponent,
+    MatCard,
+    FlexModule,
+    ContentWaitingComponent,
+    RenderedTextComponent,
+    MatTabNav,
+    MatTabLink,
+    MatIcon,
+    ExtensionPointModule,
+    CountdownTimerComponent,
+    MatTabNavPanel,
+    FormsModule,
+    ContentChoiceParticipantComponent,
+    ContentScaleParticipantComponent,
+    ContentTextParticipantComponent,
+    ContentSortParticipantComponent,
+    ContentWordcloudParticipantComponent,
+    ContentPrioritizationParticipantComponent,
+    ContentNumericParticipantComponent,
+    NgClass,
+    MatButton,
+    LoadingButtonComponent,
+    MatIconButton,
+    MatTooltip,
+    ContentResultsComponent,
+    DividerComponent,
+    LeaderboardPageComponent,
+    TranslocoPipe,
+  ],
 })
 export class ContentParticipantComponent
   extends FormComponent
-  implements OnInit
+  implements OnInit, OnChanges
 {
   @Input({ required: true }) content!: Content;
+  @Input({ required: true }) contentGroup!: ContentGroup;
   @Input() answer?: Answer;
   @Input() lastContent = false;
   @Input() active = false;
@@ -37,8 +119,11 @@ export class ContentParticipantComponent
   @Input() statsPublished = false;
   @Input() correctOptionsPublished = false;
   @Input() attribution?: string;
+  @Input() alias?: RoomUserAlias;
+  @Input() showCard = true;
   @Output() answerChanged = new EventEmitter<Answer>();
-  @Output() next = new EventEmitter<boolean>();
+  @Output() next = new EventEmitter<void>();
+  @Output() answerReset = new EventEmitter<string>();
 
   sendEvent = new EventEmitter<string>();
   isLoading = true;
@@ -47,7 +132,6 @@ export class ContentParticipantComponent
   answersString = '';
   extensionData: any;
   alreadySent = false;
-  flipped = false;
   isMultiple = false;
   flashcardMarkdownFeatures = MarkdownFeatureset.EXTENDED;
   HotkeyAction = HotkeyAction;
@@ -69,11 +153,50 @@ export class ContentParticipantComponent
   numericAnswer!: NumericAnswer;
   qtiAnswer!: QtiAnswer;
 
-  constructor(protected formService: FormService) {
+  selectedRoute = '';
+  endDate?: Date;
+  answeringLocked = false;
+  GroupType = GroupType;
+
+  tabs: ContentActionTab[] = [
+    {
+      route: '',
+      label: 'participant.answer.answering',
+      hotkey: '1',
+      icon: 'edit',
+    },
+    {
+      route: 'results',
+      label: 'participant.answer.results',
+      hotkey: '2',
+      icon: 'insert_chart',
+    },
+    {
+      route: 'leaderboard',
+      label: 'content.leaderboard',
+      hotkey: '3',
+      icon: 'emoji_events',
+    },
+  ];
+
+  constructor(
+    protected formService: FormService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private location: Location,
+    private eventService: EventService,
+    private contentService: ContentService,
+    private translateService: TranslocoService,
+    private notificationService: NotificationService
+  ) {
     super(formService);
   }
 
   ngOnInit(): void {
+    if (this.active) {
+      this.selectedRoute = this.route.snapshot.params['action'] || '';
+      this.checkForCountdown();
+    }
     this.setExtensionData(this.content.roomId, this.content.id);
     if (this.answer) {
       this.alreadySent = true;
@@ -84,6 +207,79 @@ export class ContentParticipantComponent
     this.isMultiple = (this.content as ContentChoice).multiple;
     this.a11yMsg = this.getA11yMessage();
     this.isLoading = false;
+    this.eventService
+      .on<EntityChangeNotification>('EntityChangeNotification')
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((notification) => {
+        if (notification.payload.id === this.content.id) {
+          this.reloadContent();
+        }
+      });
+  }
+
+  reloadContent() {
+    this.isLoading = true;
+    this.contentService
+      .getContent(this.content.roomId, this.content.id, false)
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((content) => {
+        const newState = content.state;
+        if (this.content.state.round !== newState.round) {
+          this.content.state = newState;
+          this.answerReset.emit(content.id);
+          const msg = this.translateService.translate(
+            content.state.round === 1
+              ? 'participant.content.answers-reset'
+              : 'participant.content.new-round-started'
+          );
+          this.notificationService.show(msg);
+        } else if (
+          !this.content.state.answeringEndTime &&
+          newState.answeringEndTime
+        ) {
+          this.startCountdown(newState.answeringEndTime);
+        }
+        this.content.state = newState;
+        this.updateTab('');
+        this.isLoading = false;
+      });
+  }
+
+  private startCountdown(endDate: Date): void {
+    if (this.active) {
+      this.answeringLocked = false;
+      this.endDate = new Date(endDate);
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes.active &&
+      changes.active.previousValue !== undefined &&
+      changes.active.currentValue &&
+      !changes.active.previousValue
+    ) {
+      this.updateTab(this.selectedRoute);
+    }
+    if (changes.active && !!changes.active.currentValue) {
+      this.checkForCountdown();
+    }
+  }
+
+  checkForCountdown(): void {
+    if (this.contentGroup.groupType === GroupType.QUIZ) {
+      if (this.content.state.answeringEndTime) {
+        const now = new Date();
+        if (
+          now.getTime() >
+          new Date(this.content.state.answeringEndTime).getTime()
+        ) {
+          this.answeringLocked = true;
+        } else {
+          this.startCountdown(this.content.state.answeringEndTime);
+        }
+      }
+    }
   }
 
   initAnswerData() {
@@ -181,18 +377,52 @@ export class ContentParticipantComponent
   forwardAnswerMessage($event: Answer) {
     this.answerChanged.emit($event);
     setTimeout(() => {
+      this.answer = $event;
       this.enableForm();
+      this.initAnswerData();
       this.checkIfAbstention($event);
       this.alreadySent = true;
     }, 100);
   }
 
-  goToStats() {
-    this.flipped = !this.flipped;
+  showTab(route: string): boolean {
+    switch (route) {
+      case '':
+        return (
+          this.statsPublished ||
+          this.content.format === ContentType.FLASHCARD ||
+          this.contentGroup.leaderboardEnabled
+        );
+      case 'results':
+        return (
+          this.statsPublished ||
+          this.content.format === ContentType.FLASHCARD ||
+          this.contentGroup.leaderboardEnabled
+        );
+      case 'leaderboard':
+        return (
+          this.contentGroup.leaderboardEnabled &&
+          this.content.format !== ContentType.FLASHCARD
+        );
+      default:
+        return false;
+    }
   }
 
-  goToNextContent() {
-    this.next.emit();
+  updateTab(route: string): void {
+    this.selectedRoute = route;
+    const urlList = [
+      'p',
+      this.route.snapshot.params['shortId'],
+      'series',
+      this.route.snapshot.params['seriesName'],
+      this.index + 1,
+    ];
+    if (this.selectedRoute) {
+      urlList.push(this.selectedRoute);
+    }
+    const urlTree = this.router.createUrlTree(urlList);
+    this.location.replaceState(this.router.serializeUrl(urlTree));
   }
 
   getA11yMessage(): string {
@@ -212,5 +442,19 @@ export class ContentParticipantComponent
       msg += format;
     }
     return msg;
+  }
+
+  showWaitingArea(): boolean {
+    return (
+      !this.isLoading &&
+      !this.answer &&
+      !!this.content.duration &&
+      ((!this.endDate && !this.content.state.answeringEndTime) ||
+        !this.alias?.id)
+    );
+  }
+
+  getIndexInContentGroup(): number {
+    return this.contentGroup.contentIds.indexOf(this.content.id);
   }
 }

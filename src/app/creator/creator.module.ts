@@ -3,7 +3,6 @@ import { CreatorRoutingModule } from './creator-routing.module';
 import { extensions } from './creator.extensions';
 import { CoreModule } from '@app/core/core.module';
 import { RoomComponent } from './settings/room/room.component';
-import { SharedModule } from '@app/shared/shared.module';
 import { TranslocoModule, provideTranslocoScope } from '@ngneat/transloco';
 import { AccessComponent } from './settings/access/access.component';
 import { CommentSettingsComponent } from './settings/comment-settings/comment-settings.component';
@@ -28,13 +27,16 @@ import { ContentGroupTemplateComponent } from '@app/standalone/content-group-tem
 import { TemplateTagSelectionComponent } from '@app/standalone/template-tag-selection/template-tag-selection.component';
 import { TemplateLanguageSelectionComponent } from '@app/standalone/template-language-selection/template-language-selection.component';
 import { ContentGroupTemplatePreviewComponent } from '@app/standalone/content-group-template-preview/content-group-template-preview.component';
+import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
+import { AnnouncementComponent } from '@app/standalone/announcement/announcement.component';
+import { NavBarComponent } from '@app/standalone/nav-bar/nav-bar.component';
+import { DetailRadioGroupComponent } from '@app/standalone/detail-radio-group/detail-radio-group.component';
 
 @NgModule({
   imports: [
     extensions,
     CreatorRoutingModule,
     CoreModule,
-    SharedModule,
     TranslocoModule,
     ExtensionPointModule,
     SettingsPanelHeaderComponent,
@@ -50,6 +52,10 @@ import { ContentGroupTemplatePreviewComponent } from '@app/standalone/content-gr
     TemplateLanguageSelectionComponent,
     ContentGroupTemplatePreviewComponent,
     ContentGroupTemplateSelectionComponent,
+    LoadingIndicatorComponent,
+    AnnouncementComponent,
+    NavBarComponent,
+    DetailRadioGroupComponent,
   ],
   declarations: [
     RoomComponent,

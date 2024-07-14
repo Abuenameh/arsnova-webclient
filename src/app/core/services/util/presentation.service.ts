@@ -6,6 +6,8 @@ import { PresentationStepPosition } from '@app/core/models/events/presentation-s
 import { ContentPresentationState } from '@app/core/models/events/content-presentation-state';
 import { RoundState } from '@app/core/models/events/round-state';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { Content } from '@app/core/models/content';
+import { ContentService } from '@app/core/services/http/content.service';
 
 const SCALE_FACTOR = 1000;
 const MIN_SCALE = 1;
@@ -29,6 +31,11 @@ export class PresentationService {
   private commentZoomChanged = new Subject<number>();
   private contentGroupUpdated = new Subject<ContentGroup>();
   private roundStateChanged = new Subject<RoundState>();
+  private countdownChanged = new Subject<Content>();
+
+  private currentContent?: Content;
+
+  constructor(private contentService: ContentService) {}
 
   getScale() {
     return Math.min(Math.max(innerWidth / SCALE_FACTOR, MIN_SCALE), MAX_SCALE);
@@ -52,6 +59,37 @@ export class PresentationService {
     this.currentGroup$.next(group);
   }
 
+  startCountdown(): void {
+    if (this.currentContent?.duration) {
+      this.contentService
+        .startCountdown(this.currentContent.roomId, this.currentContent.id)
+        .subscribe(() => {
+          this.reloadCurrentContent();
+        });
+    }
+  }
+
+  stopCountdown(): void {
+    if (this.currentContent?.duration) {
+      this.contentService
+        .stopCountdown(this.currentContent.roomId, this.currentContent.id)
+        .subscribe(() => {
+          this.reloadCurrentContent();
+        });
+    }
+  }
+
+  reloadCurrentContent(): void {
+    if (this.currentContent) {
+      this.contentService
+        .getContent(this.currentContent.roomId, this.currentContent.id)
+        .subscribe((content) => {
+          this.currentContent = content;
+          this.countdownChanged.next(content);
+        });
+    }
+  }
+
   // States
 
   getContentState(): Observable<ContentPresentationState | undefined> {
@@ -60,6 +98,7 @@ export class PresentationService {
 
   updateContentState(state: ContentPresentationState) {
     this.contentState$.next(state);
+    this.currentContent = state.content;
   }
 
   getCommentState(): Observable<CommentPresentationState | undefined> {
@@ -118,5 +157,9 @@ export class PresentationService {
 
   updateFeedbackStarted(started: boolean) {
     this.feedbackStarted$.next(started);
+  }
+
+  getCountdownChanged(): Observable<Content> {
+    return this.countdownChanged;
   }
 }

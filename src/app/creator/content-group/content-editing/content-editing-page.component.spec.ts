@@ -25,6 +25,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { of } from 'rxjs';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { Room } from '@app/core/models/room';
+import { ContentGroup } from '@app/core/models/content-group';
 
 @Injectable()
 class MockContentService {
@@ -56,7 +57,11 @@ class MockRoomService {}
 class MockDialogService {}
 
 @Injectable()
-class MockContentGroupService {}
+class MockContentGroupService {
+  getContentFormatsOfGroupType() {
+    return Object.values(ContentType);
+  }
+}
 
 @Injectable()
 class MockRoomStatsService {}
@@ -75,6 +80,7 @@ describe('ContentEditingPageComponent', () => {
   snapshot.params = of([{ seriesName: 'SERIES' }]);
   snapshot.data = {
     room: new Room(),
+    contentGroup: new ContentGroup(),
   };
 
   const activatedRouteStub = new ActivatedRouteStub(

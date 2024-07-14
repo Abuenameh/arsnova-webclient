@@ -12,7 +12,7 @@ import { RoutingService } from '@app/core/services/util/routing.service';
 import { ContentGroupService } from '@app/core/services/http/content-group.service';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AuthenticationService } from '@app/core/services/http/authentication.service';
-import { ContentGroup } from '@app/core/models/content-group';
+import { ContentGroup, GroupType } from '@app/core/models/content-group';
 import {
   AnswerResultOverview,
   AnswerResultType,
@@ -24,6 +24,23 @@ import { RoutingFeature } from '@app/core/models/routing-feature.enum';
 import { ContentCarouselService } from '@app/core/services/util/content-carousel.service';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { HintType } from '@app/core/models/hint-type.enum';
+import { LeaderboardItem } from '@app/core/models/leaderboard-item';
+import { RoomUserAlias } from '@app/core/models/room-user-alias';
+import { TranslocoPipe } from '@ngneat/transloco';
+import { CoreModule } from '@app/core/core.module';
+import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatList, MatListItem } from '@angular/material/list';
+import { MatButton } from '@angular/material/button';
+import { HintComponent } from '@app/standalone/hint/hint.component';
+import { LeaderboardComponent } from '@app/standalone/leaderboard/leaderboard.component';
+import { InfoChartComponent } from './info-chart/info-chart.component';
+import { MatIcon } from '@angular/material/icon';
+import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
+import { NgStyle, NgClass } from '@angular/common';
+import { MatCard } from '@angular/material/card';
+import { FlexModule } from '@angular/flex-layout';
+import { OrdinalPipe } from '@app/core/pipes/ordinal.pipe';
 
 // Max time for updating db (5000) - navigation delay (500) / 2
 const RELOAD_INTERVAL = 2250;
@@ -32,29 +49,53 @@ const RETRY_LIMIT = 4;
 interface ContentResultView {
   body: string;
   state: AnswerResultType;
+  duration?: number;
 }
 
 @Component({
   selector: 'app-series-overview',
   templateUrl: './series-overview.component.html',
   styleUrls: ['./series-overview.component.scss'],
+  standalone: true,
+  imports: [
+    FlexModule,
+    MatCard,
+    LoadingIndicatorComponent,
+    MatIcon,
+    InfoChartComponent,
+    LeaderboardComponent,
+    HintComponent,
+    NgStyle,
+    MatButton,
+    MatList,
+    MatListItem,
+    NgClass,
+    MatTooltip,
+    RenderedTextComponent,
+    CoreModule,
+    TranslocoPipe,
+    OrdinalPipe,
+  ],
 })
 export class SeriesOverviewComponent implements OnInit, OnDestroy {
   @Input({ required: true }) group!: ContentGroup;
   @Input({ required: true }) contents!: Content[];
   @Input() finished = false;
   @Input() isPureInfoSeries = false;
+  @Input() alias?: RoomUserAlias;
 
   hasAnsweredLastContent = false;
   private correctChart?: Chart;
   private progressChart?: Chart;
+  private pointsChart?: Chart;
   private colors = {
     chart: '',
     background: '',
     primary: '',
+    gold: '',
   };
   // TODO: non-null assertion operator is used here temporaly. We need to use a resolver here to move async logic out of component.
-  private auth!: ClientAuthentication;
+  auth!: ClientAuthentication;
   private resultOverview!: AnswerResultOverview;
   private quizAnswerTypes = [AnswerResultType.CORRECT, AnswerResultType.WRONG];
 
@@ -70,6 +111,10 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
   hasScore = false;
   score = 0;
   HintType = HintType;
+  leaderboard?: LeaderboardItem[];
+  userLeaderboardItem?: LeaderboardItem;
+  selectedTabIndex = 0;
+  GroupType = GroupType;
 
   constructor(
     private routingService: RoutingService,
@@ -103,7 +148,20 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
           this.setResultOverview(resultOverview);
           this.setViewData();
           this.checkIfLastContentIsLoaded();
-          this.isLoading = false;
+          if (this.group.leaderboardEnabled) {
+            this.contentGroupService
+              .getLeaderboard(this.group.roomId, this.group.id)
+              .subscribe((leaderboard) => {
+                this.leaderboard = leaderboard;
+                this.userLeaderboardItem = this.leaderboard.find(
+                  (l) => l.userAlias.id === this.alias?.id
+                );
+                this.updatePointsChart();
+                this.isLoading = false;
+              });
+          } else {
+            this.isLoading = false;
+          }
           this.updateCharts();
         },
         () => {
@@ -170,6 +228,7 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
       this.contentsWithResults.push({
         body: val.renderedBody,
         state: this.resultOverview?.answerResults[i].state,
+        duration: this.resultOverview?.answerResults[i].duration,
       });
     });
   }
@@ -178,6 +237,7 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
     this.colors.background = this.themeService.getColor('background');
     this.colors.chart = this.themeService.getColor('green');
     this.colors.primary = this.themeService.getPrimaryColor();
+    this.colors.gold = this.themeService.getColor('gold');
   }
 
   private checkIfLastContentIsLoaded() {
@@ -189,8 +249,19 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
           .subscribe((resultOverview) => {
             this.setResultOverview(resultOverview);
             this.checkIfLastContentIsLoaded();
-            this.retryCount++;
           });
+        if (this.group.leaderboardEnabled) {
+          this.contentGroupService
+            .getLeaderboard(this.group.roomId, this.group.id)
+            .subscribe((leaderboard) => {
+              this.leaderboard = leaderboard;
+              this.userLeaderboardItem = this.leaderboard.find(
+                (l) => l.userAlias.id === this.alias?.id
+              );
+              this.updatePointsChart();
+            });
+        }
+        this.retryCount++;
       }, RELOAD_INTERVAL);
     } else if (!this.isLoading) {
       this.setViewData();
@@ -245,6 +316,33 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
         );
       }, 300);
     }
+  }
+
+  private updatePointsChart() {
+    if (this.pointsChart) {
+      (this.pointsChart.data.datasets[0].data = this.getPointChartData()),
+        this.pointsChart.update();
+    } else {
+      setTimeout(() => {
+        this.pointsChart = this.createChart(
+          'points-chart',
+          this.colors.gold,
+          this.getPointChartData()
+        );
+      }, 300);
+    }
+  }
+
+  private getPointChartData() {
+    if (this.leaderboard && this.userLeaderboardItem) {
+      return [
+        this.userLeaderboardItem.score,
+        this.leaderboard
+          .map((l) => l.score)
+          .reduce((a, b) => Math.max(a, b), 0) - this.userLeaderboardItem.score,
+      ];
+    }
+    return [0, 0];
   }
 
   private createChart(
@@ -362,5 +460,17 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
 
   getLockedContentCount() {
     return this.totalContentCount - this.contents.length;
+  }
+
+  getPosition(): number {
+    if (this.userLeaderboardItem) {
+      const position = this.leaderboard
+        ?.map((l) => l.userAlias.id)
+        .indexOf(this.userLeaderboardItem.userAlias.id);
+      if (position !== undefined) {
+        return position + 1;
+      }
+    }
+    return -1;
   }
 }

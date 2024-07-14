@@ -1,0 +1,53 @@
+<div>
+  <div fxLayout="row wrap" fxLayoutAlign="space-between">
+    <h2 mat-dialog-title tabindex="0">
+      {{ 'announcement.announcements' | transloco }}
+    </h2>
+    <mat-form-field appearance="outline" class="no-field-hint">
+      <mat-label>{{ 'announcement.filter' | transloco }}</mat-label>
+      <mat-select
+        [(value)]="selectedRoomId"
+        (selectionChange)="filter()"
+        [disabled]="announcements.length === 0"
+      >
+        <mat-option value="">{{
+          'announcement.all-rooms' | transloco
+        }}</mat-option>
+        <mat-divider></mat-divider>
+        @for (room of announcementRooms | keyvalue; track room) {
+          <mat-option value="{{ room.key }}">{{ room.value }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+  @if (!isLoading) {
+    <mat-dialog-content fxLayout="column" fxLayoutGap="10px">
+      @if (announcements.length === 0) {
+        <p class="hint-sm">
+          {{ 'announcement.no-announcements' | transloco }}
+        </p>
+      }
+      @for (announcement of displayAnnouncements; track announcement) {
+        <app-announcement
+          [announcement]="announcement"
+          [roomName]="announcement.roomName"
+          [label]="getLabel(announcement)"
+          tabindex="0"
+        ></app-announcement>
+      }
+    </mat-dialog-content>
+  }
+  @if (isLoading) {
+    <app-loading-indicator></app-loading-indicator>
+  }
+  <div
+    mat-dialog-actions
+    fxLayout="row"
+    fxLayoutAlign="end"
+    class="bottom-buttons"
+  >
+    <button mat-flat-button color="primary" (click)="close()">
+      {{ 'announcement.close' | transloco }}
+    </button>
+  </div>
+</div>

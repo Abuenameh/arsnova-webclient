@@ -7,14 +7,15 @@ import { RoutingService } from '@app/core/services/util/routing.service';
 import { ContentGroupService } from '@app/core/services/http/content-group.service';
 import { MockThemeService } from '@testing/test-helpers';
 import { of } from 'rxjs';
-import { UserRole } from '@app/core/models/user-roles.enum';
-import { ContentGroup } from '@app/core/models/content-group';
+import { ContentGroup, GroupType } from '@app/core/models/content-group';
 import { AnswerResultType } from '@app/core/models/answer-result';
 import { By } from '@angular/platform-browser';
 import { Content } from '@app/core/models/content';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ContentCarouselService } from '@app/core/services/util/content-carousel.service';
+import { FormattingService } from '@app/core/services/http/formatting.service';
+import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
 
 class MockAuthenticationService {
   getCurrentAuthentication() {
@@ -25,9 +26,9 @@ class MockAuthenticationService {
 class MockRoutingService {
   getShortId() {}
 
-  getRoleString(userRole: UserRole) {}
+  getRoleString() {}
 
-  navigate(url: string) {}
+  navigate() {}
 }
 
 describe('SeriesOverviewComponent', () => {
@@ -43,10 +44,16 @@ describe('SeriesOverviewComponent', () => {
 
   mockContentCarouselService.isLastContentAnswered.and.returnValue(false);
 
+  const formattingService = jasmine.createSpyObj(['postString']);
+  formattingService.postString.and.returnValue(of('rendered'));
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SeriesOverviewComponent],
-      imports: [getTranslocoModule()],
+      imports: [
+        getTranslocoModule(),
+        SeriesOverviewComponent,
+        RenderedTextComponent,
+      ],
       providers: [
         {
           provide: ThemeService,
@@ -68,6 +75,10 @@ describe('SeriesOverviewComponent', () => {
           provide: ContentCarouselService,
           useValue: mockContentCarouselService,
         },
+        {
+          provide: FormattingService,
+          useValue: formattingService,
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -77,13 +88,14 @@ describe('SeriesOverviewComponent', () => {
     fixture = TestBed.createComponent(SeriesOverviewComponent);
     component = fixture.componentInstance;
     component.group = new ContentGroup();
+    component.group.groupType = GroupType.MIXED;
+    component.group.leaderboardEnabled = false;
     const content1 = new Content(
       '1',
       'subject',
       'body',
       [],
-      ContentType.CHOICE,
-      {}
+      ContentType.CHOICE
     );
     content1.id = '1111';
     const content2 = new Content(
@@ -91,8 +103,7 @@ describe('SeriesOverviewComponent', () => {
       'subject',
       'body',
       [],
-      ContentType.CHOICE,
-      {}
+      ContentType.CHOICE
     );
     content2.id = '2222';
     const content3 = new Content(
@@ -100,8 +111,7 @@ describe('SeriesOverviewComponent', () => {
       'subject',
       'body',
       [],
-      ContentType.CHOICE,
-      {}
+      ContentType.CHOICE
     );
     content3.id = '3333';
     component.contents = [content1, content2, content3];
@@ -215,6 +225,7 @@ describe('SeriesOverviewComponent', () => {
       ],
     };
     mockContentGroupService.getAnswerStats.and.returnValue(of(resultOverview));
+    component.group.groupType = GroupType.QUIZ;
     fixture.detectChanges();
 
     const correctInfoChart = fixture.debugElement.query(

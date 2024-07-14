@@ -1,0 +1,14 @@
+<div fxLayout="column" fxLayoutAlign="start center">
+  <div fxFill>
+    @if (isLoading) {
+      <app-loading-indicator></app-loading-indicator>
+    }
+    @if (!isLoading) {
+      <app-content-leaderboard
+        [leaderboardItems]="leaderboardItems"
+        [aliasId]="aliasId"
+        [contentDuration]="content.duration"
+      ></app-content-leaderboard>
+    }
+  </div>
+</div>

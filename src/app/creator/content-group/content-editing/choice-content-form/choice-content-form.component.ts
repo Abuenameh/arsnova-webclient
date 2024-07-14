@@ -40,6 +40,8 @@ export class ChoiceContentFormComponent
   @Input() content?: Content;
   @Input() isAnswered = false;
   @Input() isEditMode = false;
+  @Input() correctAnswerSelection = false;
+  @Input() isQuiz = false;
 
   displayAnswers: DisplayAnswer[] = [];
   multipleCorrectAnswers = false;
@@ -55,11 +57,15 @@ export class ChoiceContentFormComponent
   ngOnInit(): void {
     if (this.isEditMode) {
       this.initContentForEditing();
+    } else {
+      if (!this.correctAnswerSelection) {
+        this.noCorrectAnswers = !this.isQuiz;
+      }
     }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!changes.content.currentValue) {
+    if (!changes.content?.currentValue) {
       this.displayAnswers = [];
     }
   }
@@ -94,9 +100,9 @@ export class ChoiceContentFormComponent
     }
     (this.content as ContentChoice).multiple = this.multipleCorrectAnswers;
     this.setAnswerOptions();
-    if (!this.noCorrectAnswers) {
-      this.setCorrectOptionIndexes();
-    }
+    (this.content as ContentChoice).correctOptionIndexes = this.noCorrectAnswers
+      ? []
+      : this.getCorrectOptionIndexes();
   }
 
   private setAnswerOptions(): void {
@@ -105,14 +111,14 @@ export class ChoiceContentFormComponent
     );
   }
 
-  private setCorrectOptionIndexes(): void {
+  private getCorrectOptionIndexes(): number[] {
     const correctOptionIndexes: number[] = [];
     this.displayAnswers.forEach((val, index) => {
       if (val.correct) {
         correctOptionIndexes.push(index);
       }
     });
-    (this.content as ContentChoice).correctOptionIndexes = correctOptionIndexes;
+    return correctOptionIndexes;
   }
 
   private initContentForEditing() {

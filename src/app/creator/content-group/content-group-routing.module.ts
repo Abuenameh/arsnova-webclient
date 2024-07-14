@@ -2,9 +2,9 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ContentGroupPageComponent } from './content-group-page.component';
 import { ContentEditingPageComponent } from './content-editing/content-editing-page.component';
-import { StatisticsPageComponent } from './statistics-page/statistics-page.component';
 import { ContentPresentationComponent } from './content-presentation/content-presentation.component';
 import { ParentRoute } from '@app/core/models/parent-route';
+import { LeaderboardPageComponent } from '@app/standalone/leaderboard-page/leaderboard-page.component';
 
 const routes: Routes = [
   {
@@ -29,7 +29,12 @@ const routes: Routes = [
   },
   {
     path: 'statistics',
-    component: StatisticsPageComponent,
+    redirectTo: '',
+    title: 'series',
+  },
+  {
+    path: 'leaderboard',
+    component: LeaderboardPageComponent,
     title: 'series',
   },
   {

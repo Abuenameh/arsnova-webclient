@@ -122,6 +122,10 @@ b {
   font-weight: $font-weight-bold;
 }
 
+.bold-text {
+  font-weight: $font-weight-bold;
+}
+
 ul {
   color: var(--on-surface);
 }
@@ -417,6 +421,21 @@ div {
   flex-grow: initial !important;
 }
 
+.tab-icon-link.mat-mdc-tab-link.mdc-tab {
+  min-width: unset;
+  padding-left: 12px;
+  padding-right: 12px;
+  border-radius: 4px;
+
+  &.mdc-tab--active {
+    @extend %primary-variant;
+  }
+}
+
+.tab-icon-link .mdc-tab-indicator {
+  display: none;
+}
+
 // Mat Form Field
 
 .mat-mdc-text-field-wrapper.mdc-text-field--outlined
@@ -431,6 +450,10 @@ div {
 
 .no-field-hint .mat-mdc-form-field-subscript-wrapper {
   height: 0;
+}
+
+.minimal-number-input .mat-mdc-form-field-infix {
+  width: 48px;
 }
 
 .number-input-small .mat-mdc-form-field-infix {
@@ -460,38 +483,6 @@ div {
   padding: 8px 0 !important;
   min-height: unset;
   max-height: 36px;
-}
-
-.active-input .mdc-text-field--outlined {
-  margin: 4px 0 6px;
-  transition: padding-left 0.5s;
-}
-
-.active-input .mat-mdc-form-field-infix {
-  min-height: unset;
-}
-
-.active-input
-  .mat-mdc-text-field-wrapper.mdc-text-field--outlined
-  .mat-mdc-form-field-infix {
-  padding: 10px 0;
-  border: none;
-}
-
-.active-input
-  .mat-mdc-text-field-wrapper.mdc-text-field--outlined
-  .mat-mdc-form-field-infix
-  input {
-  padding-top: 0;
-}
-
-.hide-editing .mdc-text-field--outlined {
-  padding-left: 0;
-}
-
-.hide-editing .mdc-notched-outline__leading,
-.hide-editing .mdc-notched-outline__trailing {
-  border: none !important;
 }
 
 .form-spacer {
@@ -527,7 +518,7 @@ div {
 
   & > label {
     cursor: pointer;
-    min-height: 50px;
+    min-height: 48px;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -800,7 +791,7 @@ div {
   }
 }
 
-.presentation-card {
+.no-card-appearance {
   transition: none !important;
   padding: 0 !important;
   margin: 0;
@@ -948,6 +939,8 @@ app-rendered-text:not(.rendered-list-preview-container, .no-full-width) {
 }
 
 .rendered-list-preview {
+  height: 28px;
+
   h1,
   h2,
   h3,
@@ -984,16 +977,10 @@ app-rendered-text:not(.rendered-list-preview-container, .no-full-width) {
   height: 16px;
 }
 
-.rendered-list-preview-container:not(.bg-unlocked)::after {
+.rendered-list-preview-container::after {
   @include bottom-fade-out;
 
   background-image: linear-gradient(to bottom, transparent, var(--surface));
-}
-
-.rendered-list-preview-container.bg-unlocked::after {
-  @include bottom-fade-out;
-
-  background-image: linear-gradient(to bottom, transparent, var(--unlocked));
 }
 
 @keyframes border-lightning {

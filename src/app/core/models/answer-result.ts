@@ -12,6 +12,7 @@ export interface AnswerResult {
   achievedPoints: number;
   maxPoints: number;
   state: AnswerResultType;
+  duration?: number;
 }
 
 // TODO: non-null assertion operator is used here temporaly. We need to find good structure for our models.

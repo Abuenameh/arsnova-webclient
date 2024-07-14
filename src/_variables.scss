@@ -11,6 +11,7 @@ $xs-font-size: 12px;
 $s-font-size: 14px;
 $m-font-size: 16px;
 $l-font-size: 20px;
+$xl-font-size: 24px;
 
 // Positioning
 
@@ -21,6 +22,13 @@ $navigation-rail-width: 72px;
 // Spaces
 
 $app-padding: 4vw;
+$spacing: 8px;
+$spacing-1: $spacing * 1.5;
+$spacing-2: $spacing * 2;
+
+// Borders
+
+$border-radius: 4px;
 
 // Card
 

@@ -397,7 +397,13 @@ export class ContentService extends AbstractEntityService<Content> {
   }
 
   startNewRound(content: Content) {
-    const changes = { state: content.state };
+    const changes = {
+      state: new ContentState(
+        content.state.round,
+        content.state.answeringEndTime,
+        content.state.answersPublished
+      ),
+    };
     changes.state.round = 2;
     const dialogRef = this.dialog.open(BaseDialogComponent, {
       data: {
@@ -444,5 +450,31 @@ export class ContentService extends AbstractEntityService<Content> {
       );
     });
     return answers;
+  }
+
+  startCountdown(roomId: string, contentId: string): Observable<void> {
+    const connectionUrl = this.buildUri(`/${contentId}/start`, roomId);
+    return this.http
+      .post<void>(connectionUrl, httpOptions)
+      .pipe(
+        catchError(
+          this.handleError<void>(
+            `Start countdown for content, room: ${roomId}, content: ${contentId}`
+          )
+        )
+      );
+  }
+
+  stopCountdown(roomId: string, contentId: string): Observable<void> {
+    const connectionUrl = this.buildUri(`/${contentId}/stop`, roomId);
+    return this.http
+      .post<void>(connectionUrl, httpOptions)
+      .pipe(
+        catchError(
+          this.handleError<void>(
+            `Stop countdown for content, room: ${roomId}, content: ${contentId}`
+          )
+        )
+      );
   }
 }

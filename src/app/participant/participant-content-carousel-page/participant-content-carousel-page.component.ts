@@ -2,16 +2,23 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { ContentService } from '@app/core/services/http/content.service';
 import { Content } from '@app/core/models/content';
-import { ContentGroup, PublishingMode } from '@app/core/models/content-group';
-import { TranslocoService } from '@ngneat/transloco';
-import { StepperComponent } from '@app/standalone/stepper/stepper.component';
+import {
+  ContentGroup,
+  GroupType,
+  PublishingMode,
+} from '@app/core/models/content-group';
+import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import {
+  STEPPER_ANIMATION_DURATION,
+  StepperComponent,
+} from '@app/standalone/stepper/stepper.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   GlobalStorageService,
   STORAGE_KEYS,
 } from '@app/core/services/util/global-storage.service';
 import { AnnounceService } from '@app/core/services/util/announce.service';
-import { Location } from '@angular/common';
+import { Location, AsyncPipe } from '@angular/common';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import { AuthenticationService } from '@app/core/services/http/authentication.service';
 import { Answer } from '@app/core/models/answer';
@@ -27,15 +34,35 @@ import { ContentFocusState } from '@app/core/models/events/remote/content-focus-
 import { RoutingService } from '@app/core/services/util/routing.service';
 import { ContentCarouselService } from '@app/core/services/util/content-carousel.service';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
-import { EntityChangeNotification } from '@app/core/models/events/entity-change-notification';
 import { FocusModeService } from '@app/participant/_services/focus-mode.service';
 import { EntityChangedPayload } from '@app/core/models/events/entity-changed-payload';
 import { ContentLicenseAttribution } from '@app/core/models/content-license-attribution';
 import { LICENSES } from '@app/core/models/licenses';
+import { RoomUserAliasService } from '@app/core/services/http/room-user-alias.service';
+import { RoomUserAlias } from '@app/core/models/room-user-alias';
+import { SeriesOverviewComponent } from '@app/participant/series-overview/series-overview.component';
+import { ContentParticipantComponent } from '@app/participant/content/content-participant/content-participant.component';
+import { CdkStep } from '@angular/cdk/stepper';
+import { FlexModule } from '@angular/flex-layout';
+import { CoreModule } from '@app/core/core.module';
+import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
 
 @Component({
   selector: 'app-participant-content-carousel-page',
   templateUrl: './participant-content-carousel-page.component.html',
+  standalone: true,
+  imports: [
+    LoadingIndicatorComponent,
+    CoreModule,
+    FlexModule,
+    StepperComponent,
+    CdkStep,
+    ContentParticipantComponent,
+    SeriesOverviewComponent,
+    AsyncPipe,
+    TranslocoPipe,
+  ],
+  providers: [FocusModeService],
 })
 export class ParticipantContentCarouselPageComponent
   implements OnInit, OnDestroy
@@ -47,9 +74,7 @@ export class ParticipantContentCarouselPageComponent
   ContentType: typeof ContentType = ContentType;
 
   contents: Content[] = [];
-  // TODO: non-null assertion operator is used here temporaly. We need to use a resolver here to move async logic out of component.
-  contentGroup!: ContentGroup;
-  contentGroupName: string;
+  contentGroup: ContentGroup;
   shortId: string;
   isLoading = true;
   alreadySent: Map<number, boolean> = new Map<number, boolean>();
@@ -70,6 +95,10 @@ export class ParticipantContentCarouselPageComponent
   showOverview = false;
 
   attributions: ContentLicenseAttribution[] = [];
+  GroupType = GroupType;
+  alias?: RoomUserAlias;
+  showStepper: boolean;
+  showCard: boolean;
 
   constructor(
     private contentService: ContentService,
@@ -87,10 +116,13 @@ export class ParticipantContentCarouselPageComponent
     private routingService: RoutingService,
     private contentCarouselService: ContentCarouselService,
     private contentPublishService: ContentPublishService,
-    private focusModeService: FocusModeService
+    private focusModeService: FocusModeService,
+    private roomUserAliasService: RoomUserAliasService
   ) {
-    this.contentGroupName = route.snapshot.params['seriesName'];
     this.shortId = route.snapshot.data.room.shortId;
+    this.showStepper = route.snapshot.data.showStepper ?? true;
+    this.showCard = route.snapshot.data.showCard ?? true;
+    this.contentGroup = route.snapshot.data.contentGroup;
   }
 
   ngOnDestroy(): void {
@@ -118,33 +150,31 @@ export class ParticipantContentCarouselPageComponent
     );
     const params = this.route.snapshot.params;
     const lastContentIndex = params['contentIndex'] - 1;
-    this.contentgroupService
-      .getByRoomIdAndName(
-        this.route.snapshot.data.room.id,
-        this.contentGroupName
-      )
-      .subscribe(
-        (contentGroup) => {
-          this.contentGroup = contentGroup;
-          this.getContents(lastContentIndex);
-          this.loadAttributions();
-        },
-        () => {
-          this.finishLoading();
+    if (this.contentGroup.leaderboardEnabled) {
+      this.roomUserAliasService
+        .generateAlias(this.contentGroup.roomId)
+        .subscribe((alias) => {
+          this.alias = alias;
+        });
+      this.roomUserAliasService.getCurrentAlias().subscribe((alias) => {
+        if (this.alias) {
+          if (alias) {
+            this.alias.id = alias.id;
+            if (alias.alias) {
+              this.alias.alias = alias.alias;
+            }
+          }
+        } else {
+          this.alias = alias;
         }
-      );
+      });
+    }
+    this.getContents(lastContentIndex);
+    this.loadAttributions();
     this.changesSubscription = this.eventService
       .on('EntityChanged')
       .subscribe((changes) => {
         this.handleStateEvent(changes as EntityChangedPayload<ContentGroup>);
-      });
-    this.eventService
-      .on<EntityChangeNotification>('EntityChangeNotification')
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((notification) => {
-        if (notification.payload.id === this.contents[this.currentStep]?.id) {
-          this.reloadCurrentContent();
-        }
       });
     this.focusModeService
       .getContentState()
@@ -156,11 +186,10 @@ export class ParticipantContentCarouselPageComponent
       .getRouteChanges()
       .subscribe((route) => {
         const newGroup = route.params['seriesName'];
-        if (newGroup && newGroup !== this.contentGroupName) {
+        if (newGroup && newGroup !== this.contentGroup.name) {
           this.contentgroupService
             .getByRoomIdAndName(this.contentGroup.roomId, newGroup)
             .subscribe((group) => {
-              this.contentGroupName = group.name;
               this.contentGroup = group;
               this.isReloading = true;
               this.getContents();
@@ -181,7 +210,7 @@ export class ParticipantContentCarouselPageComponent
           if (this.started) {
             this.stepper.onClick(newIndex);
           } else {
-            this.initStepper(newIndex, 300);
+            this.initStepper(newIndex, STEPPER_ANIMATION_DURATION);
           }
         } else {
           this.lockedContentId = state.contentId;
@@ -250,29 +279,6 @@ export class ParticipantContentCarouselPageComponent
     this.getContents(this.currentStep);
   }
 
-  reloadCurrentContent() {
-    this.isReloadingCurrentContent = true;
-    const currentContent = this.contents[this.currentStep];
-    this.contentService
-      .getContent(this.contentGroup.roomId, currentContent.id, false)
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((content) => {
-        const newRound = content.state.round;
-        if (currentContent.state.round !== newRound) {
-          currentContent.state.round = newRound;
-          this.answers[this.currentStep] = undefined;
-          this.alreadySent.set(this.currentStep, false);
-          const msg = this.translateService.translate(
-            content.state.round === 1
-              ? 'participant.content.answers-reset'
-              : 'participant.content.new-round-started'
-          );
-          this.notificationService.show(msg);
-        }
-        this.isReloadingCurrentContent = false;
-      });
-  }
-
   finishLoading() {
     this.isLoading = false;
     this.isReloading = false;
@@ -309,28 +315,35 @@ export class ParticipantContentCarouselPageComponent
   }
 
   updateContentIndexUrl(index: number = 0) {
-    if ((!!index && this.currentStep !== index) || !this.isReloading) {
-      this.currentStep = index || 0;
-      this.replaceUrl([
-        'p',
-        this.shortId,
-        'series',
-        this.contentGroupName,
-        index + 1,
-      ]);
-    }
+    setTimeout(() => {
+      if ((!!index && this.currentStep !== index) || !this.isReloading) {
+        this.currentStep = index || 0;
+        this.replaceUrl([
+          'p',
+          this.shortId,
+          'series',
+          this.contentGroup.name,
+          index + 1,
+        ]);
+      }
+    }, STEPPER_ANIMATION_DURATION);
+  }
+
+  isContentTimerActive(content: Content): boolean {
+    return new Date(content.state.answeringEndTime) > new Date();
   }
 
   getInitialStep() {
     const firstIndex = this.getFirstUnansweredContentIndex();
     if (
-      firstIndex === 0 &&
+      (firstIndex === 0 ||
+        (firstIndex && this.isContentTimerActive(this.contents[firstIndex]))) &&
       !this.isPureInfoSeries &&
       !this.contentCarouselService.isLastContentAnswered()
     ) {
       this.showOverview = false;
-      this.initStepper(0);
-      this.updateContentIndexUrl(0);
+      this.initStepper(firstIndex || 0);
+      this.updateContentIndexUrl(firstIndex);
     } else {
       this.showOverview = true;
     }
@@ -345,10 +358,13 @@ export class ParticipantContentCarouselPageComponent
   }
 
   getFirstUnansweredContentIndex(): number | undefined {
-    for (let i = 0; i < this.alreadySent.size; i++) {
+    for (let i = 0; i < this.contents.length; i++) {
+      const content = this.contents[i];
       if (
         this.alreadySent.get(i) === false &&
-        !this.isInfoContent(this.contents[i])
+        (!content.state.answeringEndTime ||
+          this.isContentTimerActive(content)) &&
+        !this.isInfoContent(content)
       ) {
         return i;
       }
@@ -375,14 +391,22 @@ export class ParticipantContentCarouselPageComponent
   goToOverview() {
     this.showOverview = true;
     // Using `onSameUrlNavigation` reload strategy to reload components on routing if only params have been removed
-    this.router.navigate(['p', this.shortId, 'series', this.contentGroupName], {
-      onSameUrlNavigation: 'reload',
-    });
+    this.router.navigate(
+      ['p', this.shortId, 'series', this.contentGroup.name],
+      {
+        onSameUrlNavigation: 'reload',
+      }
+    );
   }
 
   replaceUrl(url: any[]) {
     const urlTree = this.router.createUrlTree(url);
     this.location.replaceState(this.router.serializeUrl(urlTree));
+  }
+
+  resetAnswer(contentId: string, index: number): void {
+    this.alreadySent.set(index, false);
+    this.answers[this.getIndexOfContentById(contentId)] = undefined;
   }
 
   receiveSentStatus(answer: Answer, index: number) {
@@ -399,11 +423,21 @@ export class ParticipantContentCarouselPageComponent
       if (this.started) {
         setTimeout(() => {
           if (index < this.contents.length - 1) {
-            this.nextContent();
-            setTimeout(() => {
-              document.getElementById('step')?.focus();
-            }, 200);
-          } else {
+            if (
+              this.contentGroup.groupType !== GroupType.QUIZ ||
+              (this.contentGroup.groupType === GroupType.QUIZ &&
+                !this.isContentTimerActive(this.contents[this.currentStep]))
+            ) {
+              this.nextContent();
+              setTimeout(() => {
+                document.getElementById('step')?.focus();
+              }, 200);
+            }
+          } else if (
+            this.contentGroup.groupType !== GroupType.QUIZ ||
+            (this.contentGroup.groupType === GroupType.QUIZ &&
+              this.contents.length === this.contentGroup.contentIds.length)
+          ) {
             this.goToOverview();
           }
         }, 1000);
@@ -466,6 +500,16 @@ export class ParticipantContentCarouselPageComponent
       ) {
         if (this.focusModeEnabled) {
           this.reloadContents();
+        } else if (
+          this.contentGroup.groupType === GroupType.QUIZ &&
+          changedEvent.hasPropertyChanged('publishingIndex')
+        ) {
+          this.isReloading = true;
+          this.getContents(
+            this.currentStep,
+            this.contentGroup.contentIds[changes.entity.publishingIndex]
+          );
+          this.showOverview = false;
         } else {
           if (!this.displaySnackBar) {
             this.displaySnackBar = true;

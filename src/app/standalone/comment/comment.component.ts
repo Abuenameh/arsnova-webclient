@@ -65,6 +65,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input() fileUploadEnabled = false;
   @Input() parseVote?: Vote;
   @Input() userId?: string;
+  @Input() outlinedCard = false;
 
   @Output() clickedOnTag = new EventEmitter<string>();
   @Output() activeComment = new EventEmitter<Comment>();

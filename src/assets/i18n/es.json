@@ -35,7 +35,7 @@
     "a11y-room": "Abrir el menú de usuario. Aquí puedes ver las salas a las que has asistido o cerrar sesión en tu cuenta. También encontrarás un enlace a una página de ayuda y configuraciones para el idioma y la visualización.",
     "a11y-switch-role": "Cambiar de rol para ver la vista de los participantes.",
     "a11y-switch-back": "Volver a la vista de administrador.",
-    "a11y-sidenav-message": "Ahora estás en el menú principal",
+    "a11y-sidenav-message": "Ahora estás en el menú principal.",
     "a11y-disable-dark-mode": "Desactivar modo oscuro",
     "a11y-enable-dark-mode": "Activar modo oscuro",
     "account-deleted": "Tu cuenta ha sido eliminada.",
@@ -104,7 +104,7 @@
     "a11y-sso-login": "Serás redirigido a {{provider}} para iniciar sesión.",
     "a11y-reset-pw": "Ir a un formulario para restablecer tu contraseña.",
     "a11y-register": "Ir al registro para crear una cuenta de usuario.",
-    "username": "Nombre de usuario",
+    "username": "ID de usuario",
     "email": "Dirección de correo electrónico",
     "email-invalid": "La dirección de correo electrónico no es válida",
     "email-required": "Se requiere una dirección de correo electrónico",
@@ -112,7 +112,7 @@
     "input-incorrect": "Por favor, verifica tu entrada.",
     "login": "Iniciar sesión",
     "login-with": "Iniciar sesión con",
-    "login-data-incorrect": "Nombre de usuario o contraseña incorrectos",
+    "login-data-incorrect": "ID de usuario o contraseña incorrectos",
     "login-successful": "Has iniciado sesión correctamente.",
     "not-registered": "¿Aún no tienes una cuenta?",
     "password-reset": "¿Olvidaste tu contraseña?",
@@ -386,7 +386,9 @@
     "previous": "Contenido anterior",
     "round": "Ronda",
     "round-displayed": "Se muestra la ronda {{rounds}}",
-    "rounds-displayed": "Se muestran las rondas {{rounds}}"
+    "rounds-displayed": "Se muestran las rondas {{rounds}}",
+    "leaderboard": "Clasificación",
+    "points": "Puntos"
   },
   "answer": {
     "word": "Palabra clave",
@@ -430,7 +432,6 @@
   "statistic": {
     "a11y-message-overview": "Ahora estás en la vista general de estadísticas.",
     "a11y-message-evaluation-answers": "Ahora puedes ver los resultados. {{answers}} participantes han respondido al contenido. Navega a través de las respuestas con la tecla de tabulación.",
-    "a11y-group-progress": "{{percent}} por ciento de los contenidos en la serie de preguntas {{group}} fueron respondidos correctamente.",
     "a11y-content-result": "El contenido {{content}} ha sido respondido por {{count}} personas hasta ahora, {{abstentions}} personas se han abstenido.",
     "a11y-choice-result": "El contenido fue respondido correctamente por {{percent}} por ciento.",
     "a11y-go-to-statistic": "Presiona la tecla Enter para ir a la evaluación del contenido.",
@@ -518,8 +519,7 @@
     "pace-positive-2": "Muy rápido"
   },
   "timer": {
-    "time-is-up": "Se acabó el tiempo.",
-    "finished": "Terminado"
+    "time-is-up": "Se acabó el tiempo"
   },
   "templates": {
     "description": "Descripción",
@@ -591,5 +591,11 @@
   },
   "general": {
     "a11y-remove-filter": "Quitar filtro"
+  },
+  "ordinal": {
+    "one": "",
+    "two": "",
+    "few": "",
+    "other": "°"
   }
 }

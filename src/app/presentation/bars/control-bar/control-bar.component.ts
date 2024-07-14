@@ -5,11 +5,12 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
 } from '@angular/core';
 import {
   NavBarComponent,
   NavBarItem,
-} from '@app/shared/nav-bar/nav-bar.component';
+} from '@app/standalone/nav-bar/nav-bar.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoutingService } from '@app/core/services/util/routing.service';
 import {
@@ -23,31 +24,27 @@ import { EventService } from '@app/core/services/util/event.service';
 import { ContentGroup, PublishingMode } from '@app/core/models/content-group';
 import { map, take, takeUntil } from 'rxjs/operators';
 import { ApiConfigService } from '@app/core/services/http/api-config.service';
-import { Subject, of } from 'rxjs';
+import { Subject } from 'rxjs';
 import { AnnounceService } from '@app/core/services/util/announce.service';
 import { Hotkey, HotkeyService } from '@app/core/services/util/hotkey.service';
 import { HotkeyAction } from '@app/core/directives/hotkey.directive';
 import { TranslocoService } from '@ngneat/transloco';
 import { RoutingFeature } from '@app/core/models/routing-feature.enum';
-import { ContentService } from '@app/core/services/http/content.service';
 import { Content } from '@app/core/models/content';
 import { DialogService } from '@app/core/services/util/dialog.service';
-import { ContentType } from '@app/core/models/content-type.enum';
 import {
   AdvancedSnackBarTypes,
   NotificationService,
 } from '@app/core/services/util/notification.service';
 import { RoomService } from '@app/core/services/http/room.service';
 import { CommentSettingsService } from '@app/core/services/http/comment-settings.service';
-import { ContentPublishService } from '@app/core/services/util/content-publish.service';
 import { CommentSort } from '@app/core/models/comment-sort.enum';
 import { PresentationService } from '@app/core/services/util/presentation.service';
 import { ContentPresentationState } from '@app/core/models/events/content-presentation-state';
 import { PresentationStepPosition } from '@app/core/models/events/presentation-step-position.enum';
 import { CommentPresentationState } from '@app/core/models/events/comment-presentation-state';
-import { RoundState } from '@app/core/models/events/round-state';
 import { FocusModeService } from '@app/creator/_services/focus-mode.service';
-import { hotkeyEnterLeaveAnimation } from '@app/standalone/hotkey-action-button/hotkey-action-button.component';
+import { ContentPresentationMenuComponent } from '@app/standalone/content-presentation-menu/content-presentation-menu.component';
 
 export class KeyNavBarItem extends NavBarItem {
   key: string;
@@ -75,12 +72,13 @@ export class KeyNavBarItem extends NavBarItem {
   selector: 'app-control-bar',
   templateUrl: './control-bar.component.html',
   styleUrls: ['./control-bar.component.scss'],
-  animations: [hotkeyEnterLeaveAnimation],
 })
 export class ControlBarComponent
   extends NavBarComponent
   implements OnInit, OnDestroy
 {
+  @ViewChild(ContentPresentationMenuComponent)
+  moreMenuComponent!: ContentPresentationMenuComponent;
   @Input({ required: true }) shortId!: string;
   @Output() activeFeature: EventEmitter<string> = new EventEmitter<string>();
   @Output() activeGroup: EventEmitter<string> = new EventEmitter<string>();
@@ -137,11 +135,6 @@ export class ControlBarComponent
 
   private hotkeyRefs: symbol[] = [];
 
-  multipleRounds = false;
-  contentRounds = new Map<string, number>();
-  rounds = ['1', '2', '1 & 2'];
-  ContentType: typeof ContentType = ContentType;
-
   constructor(
     protected router: Router,
     protected routingService: RoutingService,
@@ -158,10 +151,8 @@ export class ControlBarComponent
     private announceService: AnnounceService,
     private hotkeyService: HotkeyService,
     private translateService: TranslocoService,
-    private contentService: ContentService,
     private dialogService: DialogService,
     private notificationService: NotificationService,
-    private contentPublishService: ContentPublishService,
     private presentationService: PresentationService
   ) {
     super(
@@ -218,6 +209,7 @@ export class ControlBarComponent
         const group = this.contentGroups.find((g) => g.name === this.groupName);
         if (group) {
           this.group = group;
+          this.checkForQuizMode();
         }
         if (
           this.isActiveFeature(RoutingFeature.CONTENTS) &&
@@ -287,12 +279,6 @@ export class ControlBarComponent
       .subscribe((state) => {
         this.evaluateCommentState(state);
       });
-    this.presentationService
-      .getMultipleRoundState()
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(
-        (multipleRounds) => (this.multipleRounds = multipleRounds || false)
-      );
   }
 
   subscribeToEvents() {
@@ -320,24 +306,6 @@ export class ControlBarComponent
       .subscribe((group) => {
         this.group = group;
       });
-    this.contentService
-      .getAnswersDeleted()
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((contentId) => {
-        if (this.content && contentId === this.content?.id) {
-          this.content.state.round = 1;
-          this.changeRound(0);
-          this.multipleRounds = false;
-        }
-      });
-    this.contentService
-      .getRoundStarted()
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((content) => {
-        if (content) {
-          this.afterRoundStarted(content);
-        }
-      });
   }
 
   evaluateContentState(state?: ContentPresentationState) {
@@ -345,9 +313,6 @@ export class ControlBarComponent
       this.contentStepState = state.position;
       this.contentIndex = state.index;
       this.content = state.content;
-      if (this.content) {
-        this.contentRounds.set(this.content.id, this.content.state.round - 1);
-      }
       this.globalStorageService.setItem(
         STORAGE_KEYS.LAST_INDEX,
         this.contentIndex
@@ -363,16 +328,6 @@ export class ControlBarComponent
         this.setArrowsState(this.commentStepState);
       }
     }
-  }
-
-  isContentLocked(): boolean {
-    return (
-      !!this.group &&
-      !this.contentPublishService.isIndexPublished(
-        this.group,
-        this.contentIndex
-      )
-    );
   }
 
   removeProtocolFromString(url: string): string {
@@ -503,6 +458,20 @@ export class ControlBarComponent
     return group.publishingMode === PublishingMode.NONE;
   }
 
+  private checkForQuizMode(): void {
+    if (this.group?.leaderboardEnabled) {
+      if (!this.groupItems.map((i) => i.name).includes('leaderboard')) {
+        this.groupItems.push(
+          new KeyNavBarItem('leaderboard', 'emoji_events', '', 'l')
+        );
+      }
+    } else {
+      if (this.groupItems.map((i) => i.name).includes('leaderboard')) {
+        this.groupItems.splice(-1, 1);
+      }
+    }
+  }
+
   changeGroup(contentGroup: ContentGroup) {
     if (this.group?.id !== contentGroup.id) {
       if (!this.isGroupLocked(contentGroup)) {
@@ -515,6 +484,7 @@ export class ControlBarComponent
 
   updateGroup(contentGroup: ContentGroup) {
     this.setGroup(contentGroup);
+    this.checkForQuizMode();
     this.activeGroup.emit(this.groupName);
   }
 
@@ -533,19 +503,6 @@ export class ControlBarComponent
         this.updateGroup(contentGroup);
       }
     });
-  }
-
-  publishCurrentContent(): void {
-    if (this.group) {
-      const changes = { publishingIndex: this.contentIndex };
-      this.contentGroupService
-        .patchContentGroup(this.group, changes)
-        .subscribe(() => {
-          if (this.group) {
-            this.group.publishingIndex = this.contentIndex;
-          }
-        });
-    }
   }
 
   toggleBarVisibility(visible: boolean) {
@@ -613,62 +570,5 @@ export class ControlBarComponent
           this.hotkeyService.registerHotkey(h, this.hotkeyRefs)
         )
     );
-  }
-
-  hasFormatAnswer(format: ContentType): boolean {
-    return ![ContentType.SLIDE, ContentType.FLASHCARD].includes(format);
-  }
-
-  hasFormatRounds(format: ContentType): boolean {
-    return this.contentService.hasFormatRounds(format);
-  }
-
-  editContent() {
-    if (!this.content || !this.group) {
-      return;
-    }
-    this.contentService.goToEdit(
-      this.content.id,
-      this.shortId,
-      this.group.name
-    );
-  }
-
-  deleteContentAnswers() {
-    this.dialogService.openDeleteDialog(
-      'content-answers',
-      'creator.dialog.really-delete-answers',
-      undefined,
-      undefined,
-      () =>
-        this.content
-          ? this.contentService.deleteAnswersOfContent(
-              this.content.id,
-              this.roomId
-            )
-          : of()
-    );
-  }
-
-  changeRound(round: number) {
-    if (!this.content) {
-      return;
-    }
-    this.contentRounds.set(this.content.id, round);
-    const roundState = new RoundState(this.contentIndex, round);
-    this.presentationService.updateRoundState(roundState);
-  }
-
-  afterRoundStarted(content: Content) {
-    this.content = content;
-    this.changeRound(this.content.state.round - 1);
-    this.multipleRounds = true;
-  }
-
-  startNewRound() {
-    if (!this.content) {
-      return;
-    }
-    this.contentService.startNewRound(this.content);
   }
 }

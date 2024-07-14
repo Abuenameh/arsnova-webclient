@@ -1,16 +1,16 @@
 @use '@angular/material' as mat;
 
-$dark-primary: mat.define-palette(mat.$deep-purple-palette, A100);
-$dark-accent: mat.define-palette(mat.$green-palette, A100);
-$dark-warn: mat.define-palette(mat.$red-palette, A100);
-$dark-theme: mat.define-dark-theme(
+$dark-primary: mat.m2-define-palette(mat.$m2-deep-purple-palette, A100);
+$dark-accent: mat.m2-define-palette(mat.$m2-green-palette, A100);
+$dark-warn: mat.m2-define-palette(mat.$m2-red-palette, A100);
+$dark-theme: mat.m2-define-dark-theme(
   (
     color: (
       primary: $dark-primary,
       accent: $dark-accent,
       warn: $dark-warn,
     ),
-    typography: mat.define-typography-config(),
+    typography: mat.m2-define-typography-config(),
   )
 );
 
@@ -30,7 +30,6 @@ $dark-theme: mat.define-dark-theme(
   --table-a: #424242;
   --table-b: #505050;
   --border: #595959;
-  --unlocked: #004d40;
   --green: #81c784;
   --red: #e57373;
   --yellow: #fff176;
@@ -55,4 +54,5 @@ $dark-theme: mat.define-dark-theme(
   --likert-neither: #e0e0e0;
   --likert-disagree: #ff8a65;
   --likert-strongly-disagree: #ff5722;
+  --gold: #ffe57f;
 }

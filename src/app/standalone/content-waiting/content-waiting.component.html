@@ -1,0 +1,57 @@
+<div
+  fxFill
+  fxLayout="column"
+  fxLayoutAlign="center center"
+  fxLayoutGap="3em"
+  class="waiting-container"
+>
+  <app-content-step-info
+    [current]="current"
+    [totalCount]="totalCount"
+  ></app-content-step-info>
+  @if (alias && !alias.id) {
+    <form
+      fxLayout="column"
+      fxLayoutAlign="center center"
+      fxLayoutGap="0.75em"
+      class="alias-form"
+    >
+      <span class="alias-hint">{{
+        'content.enter-alias-for-participation' | transloco
+      }}</span>
+      <mat-form-field class="no-field-hint">
+        <input
+          name="alias-input"
+          [disabled]="formDisabled"
+          matInput
+          [(ngModel)]="enteredAlias"
+          [placeholder]="alias.alias"
+          [maxLength]="30"
+        />
+        <button mat-icon-button matSuffix (click)="generateAlias()">
+          @if (!alias.id) {
+            <mat-icon
+              attr.aria-label="{{ 'content.generate-new-alias' | transloco }}"
+              class="generate-icon"
+              >autorenew</mat-icon
+            >
+          }
+        </button>
+      </mat-form-field>
+      <app-loading-button
+        [name]="'content.join-quiz' | transloco"
+        (clicked)="setAlias()"
+      ></app-loading-button>
+    </form>
+  }
+  @if (alias?.id) {
+    <span>{{
+      'content.get-ready-alias' | transloco: { alias: alias?.alias }
+    }}</span>
+  }
+  @if (!alias) {
+    <span>
+      {{ 'content.get-ready' | transloco }}
+    </span>
+  }
+</div>

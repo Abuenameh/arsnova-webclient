@@ -104,7 +104,7 @@
     "a11y-sso-login": "You will be forwarded to {{provider}} to log in.",
     "a11y-reset-pw": "Go to a form to reset your password.",
     "a11y-register": "Go to the registration to create an user account.",
-    "username": "Username",
+    "username": "User ID",
     "email": "E-mail address",
     "email-invalid": "E-mail address is invalid",
     "email-required": "E-mail address required",
@@ -112,7 +112,7 @@
     "input-incorrect": "Please check your input.",
     "login": "Log in",
     "login-with": "Log in with",
-    "login-data-incorrect": "Username or password incorrect",
+    "login-data-incorrect": "User ID or password incorrect",
     "login-successful": "You have been logged in.",
     "not-registered": "Don't have an account yet?",
     "password-reset": "Forgot your password?",
@@ -148,7 +148,7 @@
   "user-profile": {
     "a11y-message": "You are now in the account page.",
     "account-settings": "Account settings",
-    "username": "Username",
+    "username": "User ID",
     "guest-hint": "You are not logged in and use a guest account.",
     "first-name": "First name",
     "last-name": "Last name",
@@ -388,7 +388,18 @@
     "previous": "Previous content",
     "round": "Round",
     "round-displayed": "Round {{rounds}} is displayed",
-    "rounds-displayed": "Rounds {{rounds}} are displayed"
+    "rounds-displayed": "Rounds {{rounds}} are displayed",
+    "content": "Content",
+    "of": "of",
+    "enter-alias-for-participation": "Enter a nickname for your participation",
+    "generate-new-alias": "Generate new nickname",
+    "your-name": "Your name",
+    "join-quiz": "Join quiz",
+    "get-ready": "Get ready!",
+    "get-ready-alias": "Get ready, {{alias}}!",
+    "leaderboard": "Leaderboard",
+    "no-leaderboard-entries": "No results yet.",
+    "points": "Points"
   },
   "answer": {
     "word": "Keyword",
@@ -432,7 +443,6 @@
   "statistic": {
     "a11y-message-overview": "You are now on the statistics overview.",
     "a11y-message-evaluation-answers": "You can now see the results. {{answers}} participants have answered the content. Navigate through the answers with the tab key.",
-    "a11y-group-progress": "{{percent}} percent of the contents in the question series {{group}} were answered correctly.",
     "a11y-content-result": "The content {{content}} has been answered by {{count}} persons so far, {{abstentions}} persons have abstained.",
     "a11y-choice-result": "The content was answered correctly by {{percent}} percent.",
     "a11y-go-to-statistic": "Press the Enter key to get to the evaluation of the content.",
@@ -588,10 +598,15 @@
     "room": "Room"
   },
   "timer": {
-    "finished": "Finished",
-    "time-is-up": "Time is up."
+    "time-is-up": "Time is up"
   },
   "general": {
     "a11y-remove-filter": "Remove filter"
+  },
+  "ordinal": {
+    "one": "st",
+    "two": "nd",
+    "few": "rd",
+    "other": "th"
   }
 }

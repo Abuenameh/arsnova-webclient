@@ -1,12 +1,3 @@
-.mat-mdc-card {
-  margin: 5px;
-  width: calc(100% - 10px);
-}
-
-.with-margin {
-  max-width: calc(832px + 10px);
-}
-
 .disabled {
   opacity: 0.8;
   pointer-events: none;
@@ -36,12 +27,6 @@ p {
   transform: scale(1);
 }
 
-.back-container {
-  position: relative !important;
-  padding-top: 1px;
-  margin-top: -1px;
-}
-
 .absolute-position {
   position: absolute;
   z-index: 1;
@@ -51,4 +36,19 @@ p {
   > mat-icon {
     opacity: 0.5;
   }
+}
+
+.countdown-container {
+  padding: 0.75em 0;
+}
+
+.no-shadow {
+  padding: 1em 0;
+  box-shadow: none;
+}
+
+:host-context(.theme-dark)
+  .tab-icon-link.mat-mdc-tab-link.mdc-tab.mdc-tab--active
+  .mat-icon {
+  color: var(--palette-primary-contrast-200);
 }

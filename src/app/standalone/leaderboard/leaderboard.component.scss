@@ -1,0 +1,40 @@
+@import '../../../variables';
+
+td:not(:last-of-type) {
+  padding-right: 0;
+}
+
+table {
+  background-color: var(--surface);
+}
+
+.bg-dark {
+  background-color: var(--background);
+}
+
+.position {
+  text-align: center;
+}
+
+.alias {
+  hyphens: auto;
+  word-break: break-word;
+}
+
+.score {
+  text-align: end;
+}
+
+@include xs {
+  td {
+    font-size: $s-font-size;
+    padding: 0 $spacing-1;
+  }
+}
+
+@include gt-xs {
+  .position {
+    width: 72px;
+    padding: 0;
+  }
+}

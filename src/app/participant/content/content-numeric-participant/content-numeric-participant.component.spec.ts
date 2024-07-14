@@ -10,16 +10,17 @@ import { getTranslocoModule } from '@testing/transloco-testing.module';
 import {
   ActivatedRouteStub,
   MockGlobalStorageService,
+  MockNotificationService,
   MockRouter,
 } from '@testing/test-helpers';
 import { of } from 'rxjs';
 import { GlobalStorageService } from '@app/core/services/util/global-storage.service';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
-import { MockNotificationService } from '@testing/test-helpers';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { NO_ERRORS_SCHEMA, EventEmitter } from '@angular/core';
 import { ContentNumeric } from '@app/core/models/content-numeric';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('ContentNumericParticipantComponent', () => {
   let component: ContentNumericParticipantComponent;
@@ -46,8 +47,11 @@ describe('ContentNumericParticipantComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ContentNumericParticipantComponent],
-      imports: [getTranslocoModule()],
+      imports: [
+        getTranslocoModule(),
+        ContentNumericParticipantComponent,
+        BrowserAnimationsModule,
+      ],
       providers: [
         {
           provide: ContentAnswerService,

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ContentGroup } from '@app/core/models/content-group';
+import { ContentGroup, GroupType } from '@app/core/models/content-group';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
@@ -15,17 +15,41 @@ import { RoomStatsService } from './room-stats.service';
 import { ContentGroupStatistics } from '@app/core/models/content-group-statistics';
 import { CachingService } from '@app/core/services/util/caching.service';
 import { WsConnectorService } from '@app/core/services/websockets/ws-connector.service';
-import { AnswerResultOverview } from '@app/core/models/answer-result';
+import {
+  AnswerResultOverview,
+  AnswerResultType,
+} from '@app/core/models/answer-result';
 import { SeriesCreated } from '@app/core/models/events/series-created';
 import { SeriesDeleted } from '@app/core/models/events/series-deleted';
 import { ContentLicenseAttribution } from '@app/core/models/content-license-attribution';
+import { CurrentLeaderboardItem } from '@app/core/models/current-leaderboard-item';
+import { LeaderboardItem } from '@app/core/models/leaderboard-item';
+import { ContentType } from '@app/core/models/content-type.enum';
+import { ContentStats } from '@app/creator/content-group/content-group-page.component';
+import { Content } from '@app/core/models/content';
+import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
+import { ContentService } from '@app/core/services/http/content.service';
 
 const httpOptions = {
   headers: new HttpHeaders({}),
 };
 
+interface AnswerStatisticsSummary {
+  contentId: string;
+  round: number;
+  result: AnswerResultType;
+  count: number;
+}
+
 @Injectable()
 export class ContentGroupService extends AbstractEntityService<ContentGroup> {
+  typeIcons: Map<GroupType, string> = new Map<GroupType, string>([
+    [GroupType.MIXED, 'dashboard'],
+    [GroupType.QUIZ, 'emoji_events'],
+    [GroupType.SURVEY, 'bar_chart'],
+    [GroupType.FLASHCARDS, 'school'],
+  ]);
+
   constructor(
     private http: HttpClient,
     protected ws: WsConnectorService,
@@ -34,6 +58,8 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
     protected translateService: TranslocoService,
     protected notificationService: NotificationService,
     private roomStatsService: RoomStatsService,
+    private contentAnswerService: ContentAnswerService,
+    private contentService: ContentService,
     cachingService: CachingService
   ) {
     super(
@@ -238,5 +264,120 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
   ): Observable<ContentLicenseAttribution[]> {
     const connectionUrl = this.buildUri(`/${groupId}/attributions`, roomId);
     return this.http.get<ContentLicenseAttribution[]>(connectionUrl);
+  }
+
+  getLeaderboard(
+    roomId: string,
+    groupId: string
+  ): Observable<LeaderboardItem[]> {
+    const connectionUrl = this.buildUri(`/${groupId}/leaderboard`, roomId);
+    return this.http
+      .get<LeaderboardItem[]>(connectionUrl)
+      .pipe(map((items) => items.sort((a, b) => b.score - a.score)));
+  }
+
+  getCurrentLeaderboard(
+    roomId: string,
+    groupId: string,
+    contentId?: string
+  ): Observable<CurrentLeaderboardItem[]> {
+    const connectionUrl = this.buildUri(
+      `/${groupId}/leaderboard?contentId=${contentId}`,
+      roomId
+    );
+    return this.http
+      .get<CurrentLeaderboardItem[]>(connectionUrl)
+      .pipe(
+        map((items) =>
+          items.sort(
+            (a, b) =>
+              (b.currentResult?.points || 0) - (a.currentResult?.points || 0)
+          )
+        )
+      );
+  }
+
+  getTypeIcons(): Map<GroupType, string> {
+    return this.typeIcons;
+  }
+
+  getContentFormatsOfGroupType(groupType: GroupType): ContentType[] {
+    switch (groupType) {
+      case GroupType.MIXED:
+        return Object.values(ContentType);
+      case GroupType.QUIZ:
+        return [
+          ContentType.CHOICE,
+          ContentType.BINARY,
+          ContentType.TEXT,
+          ContentType.SORT,
+          ContentType.NUMERIC,
+          ContentType.SLIDE,
+        ];
+      case GroupType.SURVEY:
+        return [
+          ContentType.CHOICE,
+          ContentType.SCALE,
+          ContentType.BINARY,
+          ContentType.TEXT,
+          ContentType.WORDCLOUD,
+          ContentType.PRIORITIZATION,
+          ContentType.NUMERIC,
+          ContentType.SLIDE,
+        ];
+      default:
+        return [ContentType.FLASHCARD, ContentType.SLIDE];
+    }
+  }
+
+  getAnswerStatistics(
+    roomId: string,
+    groupId: string,
+    contents: Content[]
+  ): Observable<Map<string, ContentStats>> {
+    const connectionUrl = this.buildUri(`/${groupId}/stats`, roomId);
+    return this.http
+      .get<AnswerStatisticsSummary[]>(connectionUrl)
+      .pipe(map((stats) => this.determineContentStatsMap(stats, contents)));
+  }
+
+  private determineContentStatsMap(
+    stats: AnswerStatisticsSummary[],
+    contents: Content[]
+  ): Map<string, ContentStats> {
+    contents = contents.filter(
+      (c) => ![ContentType.SLIDE, ContentType.FLASHCARD].includes(c.format)
+    );
+    const result = new Map<string, ContentStats>();
+    contents.forEach((content) => {
+      let count = 0;
+      let correct: number | undefined;
+      const contentSummaries = stats.filter(
+        (stats) =>
+          stats.contentId === content.id &&
+          stats.round === content.state.round &&
+          stats.result !== AnswerResultType.ABSTAINED
+      );
+      if (contentSummaries.length > 0) {
+        count = this.calculateStatsCount(contentSummaries);
+        correct = this.calculateCorrectStats(contentSummaries);
+      }
+      if (correct) {
+        correct = (correct / count) * 100;
+      }
+      result.set(content.id, { count: count, correct: correct });
+    });
+    return result;
+  }
+
+  calculateCorrectStats(stats: AnswerStatisticsSummary[]): number {
+    return (
+      stats.filter((stats) => stats.result === AnswerResultType.CORRECT)[0]
+        ?.count || 0
+    );
+  }
+
+  calculateStatsCount(stats: AnswerStatisticsSummary[]): number {
+    return stats.map((stats) => stats.count).reduce((a, b) => a + b);
   }
 }
