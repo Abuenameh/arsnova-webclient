@@ -1611,8 +1611,10 @@
       },
       onChange: handleChange,
       style: {
-        width: config.width,
-        height: config.height,
+        width: 'auto',
+        height: 'auto',
+        'min-width': config.width,
+        'min-height': config.height,
         display: config.display,
       },
       children: state.input,
