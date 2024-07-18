@@ -30,7 +30,7 @@ import {
 })
 export class ContentQtiParticipantComponent extends ContentParticipantBaseComponent {
   @Input({ required: true }) content!: ContentQti;
-  @Input({ required: true }) answer!: QtiAnswer;
+  @Input() answer?: QtiAnswer;
   @Input() correctOptionsPublished = false;
   @Output() answerChanged = new EventEmitter<QtiAnswer>();
 
