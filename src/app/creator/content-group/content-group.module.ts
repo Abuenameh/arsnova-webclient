@@ -38,6 +38,8 @@ import { ContentResultsComponent } from '@app/standalone/content-results/content
 import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
 import { ContentStepperComponent } from '@app/standalone/content-stepper/content-stepper.component';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { ContentGroupInfoComponent } from '@app/standalone/content-group-info/content-group-info.component';
+import { CountdownTimerComponent } from '@app/standalone/countdown-timer/countdown-timer.component';
 import { QtiContentFormComponent as QtiContentFormComponent } from '@app/creator/content-group/content-editing/qti-content-form/qti-content-form.component';
 
 @NgModule({
@@ -84,6 +86,8 @@ import { QtiContentFormComponent as QtiContentFormComponent } from '@app/creator
     LoadingIndicatorComponent,
     ContentStepperComponent,
     FlexLayoutModule,
+    ContentGroupInfoComponent,
+    CountdownTimerComponent,
   ],
 })
 export class ContentGroupModule {}

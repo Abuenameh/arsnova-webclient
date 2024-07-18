@@ -10,7 +10,11 @@ import {
 } from '@app/core/services/util/notification.service';
 import { TranslocoService } from '@ngneat/transloco';
 import { ContentGroupService } from '@app/core/services/http/content-group.service';
-import { ContentGroup, GroupType } from '@app/core/models/content-group';
+import {
+  ContentGroup,
+  GroupType,
+  PublishingMode,
+} from '@app/core/models/content-group';
 import { FormComponent } from '@app/standalone/form/form.component';
 import { FormService } from '@app/core/services/util/form.service';
 import { take } from 'rxjs';
@@ -47,7 +51,7 @@ export class ContentGroupCreationComponent extends FormComponent {
     super(formService);
     Object.values(GroupType).forEach((type) => {
       const title = this.translateService.translate(
-        'creator.content.group-type-' + type.toLowerCase()
+        'content.group-type-' + type.toLowerCase()
       );
       const description = this.translateService.translate(
         'creator.content.group-type-description-' + type.toLowerCase()
@@ -78,6 +82,9 @@ export class ContentGroupCreationComponent extends FormComponent {
         newGroup.roomId = this.data.roomId;
         newGroup.name = this.name;
         newGroup.groupType = this.selectedType;
+        if (newGroup.groupType === GroupType.QUIZ) {
+          newGroup.publishingMode = PublishingMode.LIVE;
+        }
         this.disableForm();
         this.contentGroupService.post(newGroup).subscribe(
           () => {

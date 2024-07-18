@@ -62,6 +62,7 @@ import { MatCard } from '@angular/material/card';
 import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
 import { CoreModule } from '@app/core/core.module';
 import { ContentGroup, GroupType } from '@app/core/models/content-group';
+import { ContentPublishService } from '@app/core/services/util/content-publish.service';
 
 interface ContentActionTab {
   route: string;
@@ -148,11 +149,11 @@ export class ContentParticipantComponent
   numericContent!: ContentNumeric;
   qtiContent!: ContentQti;
 
-  choiceAnswer!: ChoiceAnswer;
-  prioritizationAnswer!: PrioritizationAnswer;
-  wordcloudAnswer!: MultipleTextsAnswer;
-  textAnswer!: TextAnswer;
-  numericAnswer!: NumericAnswer;
+  choiceAnswer?: ChoiceAnswer;
+  prioritizationAnswer?: PrioritizationAnswer;
+  wordcloudAnswer?: MultipleTextsAnswer;
+  textAnswer?: TextAnswer;
+  numericAnswer?: NumericAnswer;
   qtiAnswer!: QtiAnswer;
 
   selectedRoute = '';
@@ -189,7 +190,8 @@ export class ContentParticipantComponent
     private eventService: EventService,
     private contentService: ContentService,
     private translateService: TranslocoService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private contentPublishService: ContentPublishService
   ) {
     super(formService);
   }
@@ -226,9 +228,17 @@ export class ContentParticipantComponent
       .pipe(takeUntil(this.destroyed$))
       .subscribe((content) => {
         const newState = content.state;
-        if (this.content.state.round !== newState.round) {
+        if (
+          this.content.state.round !== newState.round ||
+          (this.answeringLocked && !newState.answeringEndTime)
+        ) {
           this.content.state = newState;
           this.answerReset.emit(content.id);
+          this.alreadySent = false;
+          this.answeringLocked = false;
+          this.endDate = undefined;
+          this.answer = undefined;
+          this.initAnswerData();
           const msg = this.translateService.translate(
             content.state.round === 1
               ? 'participant.content.answers-reset'
@@ -240,6 +250,12 @@ export class ContentParticipantComponent
           newState.answeringEndTime
         ) {
           this.startCountdown(newState.answeringEndTime);
+        } else if (
+          this.content.state.answeringEndTime &&
+          newState.answeringEndTime &&
+          newState.answeringEndTime !== this.content.state.answeringEndTime
+        ) {
+          this.answeringLocked = true;
         }
         this.content.state = newState;
         this.updateTab('');
@@ -285,6 +301,14 @@ export class ContentParticipantComponent
   }
 
   initAnswerData() {
+    if (!this.answer) {
+      this.choiceAnswer = undefined;
+      this.textAnswer = undefined;
+      this.prioritizationAnswer = undefined;
+      this.numericAnswer = undefined;
+      this.wordcloudAnswer = undefined;
+      return;
+    }
     if (
       [ContentType.CHOICE, ContentType.BINARY, ContentType.SORT].includes(
         this.content.format
@@ -448,11 +472,11 @@ export class ContentParticipantComponent
 
   showWaitingArea(): boolean {
     return (
-      !this.isLoading &&
       !this.answer &&
-      !!this.content.duration &&
-      ((!this.endDate && !this.content.state.answeringEndTime) ||
-        !this.alias?.id)
+      ((this.contentPublishService.isGroupLive(this.contentGroup) &&
+        !this.endDate &&
+        !this.content.state.answeringEndTime) ||
+        (this.contentGroup.leaderboardEnabled && !this.alias?.id))
     );
   }
 
