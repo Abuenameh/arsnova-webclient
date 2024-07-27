@@ -20,7 +20,8 @@
               "src/assets",
               "src/favicon.ico",
               "src/manifest.webmanifest",
-              "src/robots.txt"
+              "src/robots.txt",
+              "src/powerpoint"
             ],
             "styles": ["src/fonts.scss", "src/styles.scss"],
             "stylePreprocessorOptions": {

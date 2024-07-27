@@ -3,3 +3,4 @@
 .git-blame-ignore-revs
 .pnp.*
 dist
+*.xml

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="ContentApp">
+  <Id>2712f6ca-fcc4-46f3-9fda-1eaefd3eeb08</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Abuenameh Aiyejina</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="ARSnova"/>
+  <Description DefaultValue="Insert ARSnova questions into your presentation."/>
+  <IconUrl DefaultValue="https://ars.abuenameh.com/assets/icons/32x32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://ars.abuenameh.com/assets/icons/64x64.png"/>
+  <SupportUrl DefaultValue="https://ars.abuenameh.com/"/>
+  <AppDomains>
+    <AppDomain>https://ars.abuenameh.com</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Presentation"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://ars.abuenameh.com/powerpoint/addin.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+</OfficeApp>
