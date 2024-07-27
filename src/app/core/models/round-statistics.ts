@@ -112,3 +112,25 @@ export class NumericRoundStatistics extends RoundStatistics {
     this.correctAnswerFraction = correctAnswerFraction;
   }
 }
+
+export class QtiRoundStatistics extends RoundStatistics {
+  responses: string[];
+
+  constructor(
+    round: number,
+    independentCounts: number[],
+    combinatedCounts: Combination[],
+    abstentionCount: number,
+    answerCount: number,
+    responses: string[]
+  ) {
+    super(
+      round,
+      independentCounts,
+      combinatedCounts,
+      abstentionCount,
+      answerCount
+    );
+    this.responses = responses;
+  }
+}

@@ -3,3 +3,13 @@
 :host {
   pointer-events: none;
 }
+
+tex-math.response {
+  display: inline-block;
+}
+
+math-field.response {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  border: 0;
+}

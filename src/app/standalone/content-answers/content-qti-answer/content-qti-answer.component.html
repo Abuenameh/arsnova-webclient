@@ -1,8 +1,38 @@
-<!-- <mat-form-field appearance="outline"> -->
-<qti-assessment-item
-  (qti-interaction-changed)="interactionChanged($any($event))"
-  (qti-assessment-item-connected)="itemConnected($any($event))"
->
-  <div [outerHTML]="content.qtiItem | safeHtml"></div>
-</qti-assessment-item>
-<!-- </mat-form-field> -->
+<div fxLayout="column">
+  <qti-assessment-item
+    #qti
+    (qti-interaction-changed)="interactionChanged($any($event))"
+    (qti-assessment-item-connected)="itemConnected($any($event))"
+    [disabled]="isDisabled"
+  >
+    <div [outerHTML]="content.qtiItem | safeHtml"></div>
+  </qti-assessment-item>
+  <div class="results-container">
+    @if (showAnswerIndicator()) {
+      @if (correctResponses?.length == 1) {
+        <span class="info-text">{{
+          'answer.correct-answer-is' | transloco
+        }}</span>
+      } @else {
+        <span class="info-text">{{
+          'answer.correct-answers-are' | transloco
+        }}</span>
+      }
+      @for (correctResponse of correctResponses; track correctResponse) {
+        @if ($last && $count > 1) {
+          <span> and</span>
+        }
+        <span
+          >&nbsp;<tex-math class="response">{{
+            correctResponse
+          }}</tex-math></span
+        >
+        @if (!$last) {
+          <span>,</span>
+        } @else {
+          <span>.</span>
+        }
+      }
+    }
+  </div>
+</div>

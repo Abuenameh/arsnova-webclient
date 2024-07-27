@@ -4,13 +4,10 @@
       [isDisabled]="isDisabled"
       [answer]="answer"
       [content]="content"
+      [correctAnswersPublished]="correctOptionsPublished"
       [responses]="responses"
       (responsesChanged)="responses = $event"
       [style.pointer-events]="isDisabled ? 'none' : 'auto'"
     ></app-content-qti-answer>
   </form>
-  <!-- (responsesChanged)="responses = $event" -->
-  <!-- <div *ngIf="givenAnswer">
-    <p class="answer">{{ givenAnswer.body }}</p>
-  </div> -->
 </div>

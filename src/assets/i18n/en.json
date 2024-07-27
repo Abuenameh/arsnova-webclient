@@ -415,6 +415,7 @@
     "your-answer": "Your answer",
     "select-a-number-between": "Select a number between {{min}} and {{max}}",
     "correct-answer-is": "The correct answer is",
+    "correct-answers-are": "The correct answers are",
     "have-answered-correctly": "have answered correctly"
   },
   "survey": {

@@ -23,15 +23,37 @@
       type="image/png"
     />
     <link href="assets/app.webmanifest" rel="manifest" />
+    <script type="module">
+      import * as QTI from 'https://unpkg.com/@abuenameh/qti-components@next/dist/index.js';
+      import 'https://unpkg.com/mathlive?module';
+      import { ComputeEngine } from 'https://unpkg.com/@cortex-js/compute-engine?module';
+      globalThis.ce = new ComputeEngine();
+      globalThis.isEqualToCorrect = (fn, identifier) => {
+        return ce
+          .parse(fn.variable(identifier))
+          .isEqual(ce.parse(fn.correct(identifier)));
+      };
+    </script>
+    <script type="text/javascript">
+      window.onload = () => {
+        let oldHref = document.location.href;
+        const body = document.querySelector('body');
+        const observer = new MutationObserver((mutations) => {
+          if (oldHref !== document.location.href) {
+            oldHref = document.location.href;
+            window.parent.postMessage(oldHref);
+          }
+        });
+        observer.observe(body, { childList: true, subtree: true });
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/tex-math@1.3.3/dist/tex-math.js"></script>
     <script
+      defer
       src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
-    <script type="module">
-      import * as QTI from 'https://unpkg.com/@abuenameh/qti-components@next/dist/index.js';
-      import 'https://unpkg.com/mathlive?module';
-    </script>
     <link href="assets/item.css" rel="stylesheet" />
   </head>
   <body>

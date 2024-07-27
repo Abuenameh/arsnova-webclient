@@ -13,6 +13,7 @@ import { ContentQti } from '@app/core/models/content-qti';
 import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
+import { QtiRoundStatistics } from '@app/core/models/round-statistics';
 import {
   ABSTENTION_SIGN,
   StatisticContentBaseComponent,
@@ -21,15 +22,28 @@ import { ContentType } from '@app/core/models/content-type.enum';
 import { takeUntil } from 'rxjs';
 import { EventService } from '@app/core/services/util/event.service';
 import { PresentationService } from '@app/core/services/util/presentation.service';
+import { NgClass } from '@angular/common';
+import { FlexModule } from '@angular/flex-layout';
 import { SafeHtmlPipe } from '@app/core/pipes/safe-html.pipe';
 import { QtiAssessmentItem } from '@abuenameh/qti-components';
+import { MatCard } from '@angular/material/card';
+
+export class ResponseCloudItem {
+  response: string;
+  size: number;
+
+  constructor(response: string, size: number) {
+    this.response = response;
+    this.size = size;
+  }
+}
 
 @Component({
   selector: 'app-statistic-qti',
   templateUrl: './statistic-qti.component.html',
   styleUrls: ['./statistic-qti.component.scss'],
   standalone: true,
-  imports: [TranslocoPipe, SafeHtmlPipe],
+  imports: [MatCard, FlexModule, TranslocoPipe, NgClass, SafeHtmlPipe],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class StatisticQtiComponent
@@ -48,6 +62,9 @@ export class StatisticQtiComponent
   independentAnswerCount: number[][] = [[], [], []];
   ContentType: typeof ContentType = ContentType;
   correctVisible = false;
+  correctResponses?: string[];
+  responsesVisible = false;
+  responseWeights: ResponseCloudItem[] = [];
 
   constructor(
     protected contentService: ContentService,
@@ -81,24 +98,23 @@ export class StatisticQtiComponent
   }
 
   toggleAnswers(visible?: boolean): boolean {
-    return true;
+    this.correctVisible = false;
+    this.answersVisible = visible ?? !this.answersVisible;
+    return this.answersVisible;
   }
 
   updateData(stats: AnswerStatistics) {
     if (stats) {
-      if (this.rounds > 1) {
-        for (let i = 0; i < this.rounds; i++) {
-          if (stats.roundStatistics[i]) {
-            this.setData(stats, i);
-          }
-        }
-      } else {
-        this.setData(stats, this.roundsToDisplay);
+      const responses = (stats?.roundStatistics[0] as QtiRoundStatistics)
+        ?.responses;
+      this.updateCounter([stats.roundStatistics[0].answerCount]);
+      if (!responses) {
+        return;
       }
-    } else {
-      this.deleteAnswers();
+      this.responseWeights = stats.roundStatistics[0].independentCounts.map(
+        (count, i) => new ResponseCloudItem(responses[i], Math.pow(count, 0.3))
+      );
     }
-    this.updateCounterForRound();
   }
 
   setData(stats: AnswerStatistics, roundIndex: number) {
@@ -119,10 +135,16 @@ export class StatisticQtiComponent
   }
 
   toggleCorrect() {
-    this.correctVisible = !this.correctVisible;
-    if (this.qtiItem) {
-      this.qtiItem.nativeElement.showCorrectResponse(this.correctVisible);
+    if (!this.correctResponses) {
+      this.correctResponses = this.qtiItem?.nativeElement.variables
+        .filter((v) => v.type === 'response' && v.identifier !== 'numAttempts')
+        .map(
+          (v) =>
+            this.qtiItem?.nativeElement.getResponse(v.identifier)
+              .correctResponse as string
+        );
     }
+    this.correctVisible = !this.correctVisible;
     return this.correctVisible;
   }
 }

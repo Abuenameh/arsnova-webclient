@@ -3,6 +3,8 @@ import {
   EventEmitter,
   Input,
   Output,
+  ViewChild,
+  ElementRef,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { CoreModule } from '@app/core/core.module';
@@ -20,18 +22,38 @@ import {
   standalone: true,
   imports: [CoreModule, SafeHtmlPipe],
   templateUrl: './content-qti-answer.component.html',
+  styleUrl: './content-qti-answer.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ContentQtiAnswerComponent {
   @Input({ required: true }) content!: ContentQti;
   @Input() answer?: QtiAnswer;
   @Input() isDisabled = false;
+  @Input() correctAnswersPublished = false;
   @Input() responses: ResponseVariable[] = [];
   @Output() responsesChanged = new EventEmitter<ResponseVariable[]>();
+
+  @ViewChild('qti') qti?: ElementRef<QtiAssessmentItem>;
+
+  correctResponses?: string[];
+
+  showAnswerIndicator(): boolean {
+    return !!this.answer && this.correctAnswersPublished;
+  }
 
   itemConnected(event: CustomEvent) {
     const qtiItem = event.target as QtiAssessmentItem;
     qtiItem.variables = this.responses;
+    if (this.showAnswerIndicator()) {
+      qtiItem.processResponse();
+    }
+    this.correctResponses = this.qti?.nativeElement.variables
+      .filter((v) => v.type === 'response' && v.identifier !== 'numAttempts')
+      .map(
+        (v) =>
+          this.qti?.nativeElement.getResponse(v.identifier)
+            .correctResponse as string
+      );
   }
 
   interactionChanged(event: CustomEvent) {

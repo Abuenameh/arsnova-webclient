@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import { QtiAnswer } from '@app/core/models/qti-answer';
 import { ContentType } from '@app/core/models/content-type.enum';
@@ -15,11 +21,7 @@ import { ContentQti } from '@app/core/models/content-qti';
 import { FormService } from '@app/core/services/util/form.service';
 import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/content-qti-answer/content-qti-answer.component';
 import { take } from 'rxjs';
-import {
-  QtiAssessmentItem,
-  VariableDeclaration,
-  ResponseVariable,
-} from '@abuenameh/qti-components';
+import { ResponseVariable } from '@abuenameh/qti-components';
 
 @Component({
   selector: 'app-content-qti-participant',
@@ -33,6 +35,8 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
   @Input() answer?: QtiAnswer;
   @Input() correctOptionsPublished = false;
   @Output() answerChanged = new EventEmitter<QtiAnswer>();
+
+  @ViewChild(ContentQtiAnswerComponent) qtiComp?: ContentQtiAnswerComponent;
 
   isLoading = true;
   ContentType: typeof ContentType = ContentType;
@@ -109,6 +113,10 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
       values:
         response.cardinality !== 'single' ? (response.value as string[]) : [''],
     }));
+    let qti = this.qtiComp?.qti?.nativeElement;
+    qti?.processResponse();
+    answer.score = Number(qti?.getOutcome('SCORE').value) || 0;
+    answer.maxScore = Number(qti?.getOutcome('MAXSCORE').value) || 0;
     this.answerService
       .addAnswerQti(this.content.roomId, answer)
       .subscribe((answer) => {

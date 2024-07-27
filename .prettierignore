@@ -4,3 +4,6 @@
 .pnp.*
 dist
 *.xml
+src/assets/index.js
+src/assets/mathlivePci.js
+src/assets/modules/module_resolution.js

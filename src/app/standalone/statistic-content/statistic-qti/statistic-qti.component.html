@@ -1,13 +1,68 @@
 <div fxLayout="column">
-  <qti-assessment-item #qtiItem>
-    <div [outerHTML]="content.qtiItem | safeHtml"></div>
-  </qti-assessment-item>
-</div>
-<div class="visually-hidden">
-  <div id="show-correct">
-    {{ 'participant.statistic.a11y-answer-indicator' | transloco }}
-  </div>
-  <div id="show-chart">
-    {{ 'participant.statistic.a11y-show-chart' | transloco }}
-  </div>
+  @if (isLoading) {
+    <app-loading-indicator></app-loading-indicator>
+  }
+  @if (!isLoading) {
+    <qti-assessment-item #qtiItem [disabled]="answersVisible || isPresentation">
+      <div [outerHTML]="content.qtiItem | safeHtml"></div>
+    </qti-assessment-item>
+    <div
+      class="results-container"
+      [ngClass]="{
+        invisible: !answersVisible,
+      }"
+    >
+      @if (answersVisible) {
+        <mat-card appearance="outlined" [style.width.%]="100">
+          <mat-card-title>Participants' responses</mat-card-title>
+          <div fxLayout="row wrap" fxLayoutAlign=" center">
+            @for (
+              responseWeight of responseWeights;
+              track responseWeight.response
+            ) {
+              <math-field
+                class="response"
+                read-only
+                [style.font-size.rem]="responseWeight.size"
+                >{{ responseWeight.response }}</math-field
+              >
+            }
+          </div>
+        </mat-card>
+      }
+    </div>
+  }
+  @if (!isLoading) {
+    <div
+      class="results-container"
+      [ngClass]="{
+        invisible: !answersVisible || !correctVisible,
+      }"
+    >
+      @if (correctResponses?.length == 1) {
+        <span class="info-text">{{
+          'answer.correct-answer-is' | transloco
+        }}</span>
+      } @else {
+        <span class="info-text">{{
+          'answer.correct-answers-are' | transloco
+        }}</span>
+      }
+      @for (correctResponse of correctResponses; track correctResponse) {
+        @if ($last && $count > 1) {
+          <span> and</span>
+        }
+        <span
+          >&nbsp;<tex-math class="response">{{
+            correctResponse
+          }}</tex-math></span
+        >
+        @if (!$last) {
+          <span>,</span>
+        } @else {
+          <span>.</span>
+        }
+      }
+    </div>
+  }
 </div>
