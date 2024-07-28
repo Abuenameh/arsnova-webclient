@@ -400,14 +400,6 @@ export class ContentService extends AbstractEntityService<Content> {
   }
 
   startNewRound(content: Content) {
-    const changes = {
-      state: new ContentState(
-        content.state.round,
-        content.state.answeringEndTime,
-        content.state.answersPublished
-      ),
-    };
-    changes.state.round = 2;
     const dialogRef = this.dialog.open(BaseDialogComponent, {
       data: {
         headerLabel: 'dialog.sure',
@@ -415,7 +407,7 @@ export class ContentService extends AbstractEntityService<Content> {
         confirmLabel: 'creator.dialog.start',
         abortLabel: 'dialog.cancel',
         type: 'button-primary',
-        confirmAction: () => this.patchContent(content, changes),
+        confirmAction: () => this.startRound(content.roomId, content.id, 2),
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
@@ -433,6 +425,26 @@ export class ContentService extends AbstractEntityService<Content> {
           });
       }
     });
+  }
+
+  startRound(
+    roomId: string,
+    contentId: string,
+    round: number
+  ): Observable<void> {
+    const connectionUrl = this.buildUri(
+      `/${contentId}/start-round?round=${round}`,
+      roomId
+    );
+    return this.http
+      .post<void>(connectionUrl, httpOptions)
+      .pipe(
+        catchError(
+          this.handleError<void>(
+            `Start new round, room: ${roomId}, content: ${contentId}, round ${round}`
+          )
+        )
+      );
   }
 
   getRoundStarted(): Observable<Content | null> {

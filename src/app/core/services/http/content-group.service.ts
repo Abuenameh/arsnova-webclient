@@ -27,12 +27,12 @@ import { LeaderboardItem } from '@app/core/models/leaderboard-item';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { ContentStats } from '@app/creator/content-group/content-group-page.component';
 import { Content } from '@app/core/models/content';
-import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
-import { ContentService } from '@app/core/services/http/content.service';
 import { ImportResult } from '@app/core/models/import-result';
 import { DIALOG_SIZES } from '@app/core/services/util/dialog.service';
 import { BaseDialogComponent } from '@app/standalone/_dialogs/base-dialog/base-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ContentChoice } from '@app/core/models/content-choice';
+import { ContentNumeric } from '@app/core/models/content-numeric';
 
 const httpOptions = {
   headers: new HttpHeaders({}),
@@ -62,8 +62,6 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
     protected translateService: TranslocoService,
     protected notificationService: NotificationService,
     private roomStatsService: RoomStatsService,
-    private contentAnswerService: ContentAnswerService,
-    private contentService: ContentService,
     private dialog: MatDialog,
     cachingService: CachingService
   ) {
@@ -335,12 +333,16 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
   startContent(
     roomId: string,
     contentGroupId: string,
-    contentId: string
+    contentId: string,
+    round?: number
   ): Observable<void> {
-    const connectionUrl = this.buildUri(
+    let connectionUrl = this.buildUri(
       `/${contentGroupId}/start-content?contentId=${contentId}`,
       roomId
     );
+    if (round) {
+      connectionUrl += `&round=${round}`;
+    }
     return this.http
       .post<void>(connectionUrl, httpOptions)
       .pipe(
@@ -384,6 +386,50 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
         ];
       default:
         return [ContentType.FLASHCARD, ContentType.SLIDE];
+    }
+  }
+
+  isContentCompatibleWithGroupType(
+    content: Content,
+    groupType: GroupType
+  ): boolean {
+    if (
+      !this.getContentFormatsOfGroupType(groupType).includes(content.format)
+    ) {
+      return false;
+    }
+    if (
+      [ContentType.SLIDE, ContentType.TEXT].includes(content.format) ||
+      groupType === GroupType.MIXED
+    ) {
+      return true;
+    }
+    return (
+      (this.isContentScorable(content) && groupType === GroupType.QUIZ) ||
+      (!this.isContentScorable(content) && groupType === GroupType.SURVEY)
+    );
+  }
+
+  private isContentScorable(content: Content): boolean {
+    const scorableFormats = [
+      ContentType.CHOICE,
+      ContentType.BINARY,
+      ContentType.NUMERIC,
+      ContentType.SORT,
+      ContentType.QTI,
+    ];
+    if (!scorableFormats.includes(content.format)) {
+      return false;
+    } else {
+      switch (content.format) {
+        case ContentType.CHOICE:
+        case ContentType.BINARY:
+          return (content as ContentChoice).correctOptionIndexes?.length > 0;
+        case ContentType.NUMERIC:
+          return (content as ContentNumeric).correctNumber !== undefined;
+        default:
+          return true;
+      }
     }
   }
 

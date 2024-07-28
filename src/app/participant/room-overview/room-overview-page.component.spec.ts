@@ -30,9 +30,8 @@ import { Message } from '@stomp/stompjs';
 import { A11yIntroPipe } from '@app/core/pipes/a11y-intro.pipe';
 import { CommentSettingsService } from '@app/core/services/http/comment-settings.service';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
-import { ContentGroupStatistics } from '@app/core/models/content-group-statistics';
 import { RoomStats } from '@app/core/models/room-stats';
-import { ContentGroup } from '@app/core/models/content-group';
+import { ContentGroup, GroupType } from '@app/core/models/content-group';
 import { FocusModeService } from '@app/participant/_services/focus-mode.service';
 import { RoomOverviewHeaderComponent } from '@app/standalone/room-overview-header/room-overview-header.component';
 import { FeatureFlagService } from '@app/core/services/util/feature-flag.service';
@@ -116,8 +115,6 @@ describe('RoomOverviewPageComponent', () => {
 
   mockCommentSettingsService.getSettingsStream.and.returnValue(of({}));
 
-  const splitShortIdPipe = new SplitShortIdPipe();
-
   const mockFocusModeService = jasmine.createSpyObj(['getFocusModeEnabled']);
   mockFocusModeService.getFocusModeEnabled.and.returnValue(of(true));
 
@@ -175,10 +172,6 @@ describe('RoomOverviewPageComponent', () => {
           useClass: MockEventService,
         },
         {
-          provide: SplitShortIdPipe,
-          useValue: splitShortIdPipe,
-        },
-        {
           provide: CommentSettingsService,
           useValue: mockCommentSettingsService,
         },
@@ -234,7 +227,14 @@ describe('RoomOverviewPageComponent', () => {
   });
 
   it('should load content groups if there are group stats in room stats', () => {
-    const groupStats = [new ContentGroupStatistics('groupId', 'groupName', 5)];
+    const groupStats = [
+      {
+        id: 'groupId',
+        groupName: 'groupName',
+        contentCount: 5,
+        groupType: GroupType.MIXED,
+      },
+    ];
     const roomStats = new RoomStats(groupStats, 0, 0, 0, 0);
     mockRoomStatsService.getStats.and.returnValue(of(roomStats));
     fixture.detectChanges();
@@ -243,7 +243,14 @@ describe('RoomOverviewPageComponent', () => {
 
   it('should call afterGroupsLoadHook if content groups exist', () => {
     const afterGroupsLoadHookSpy = spyOn(component, 'afterGroupsLoadHook');
-    const groupStats = [new ContentGroupStatistics('groupId', 'groupName', 5)];
+    const groupStats = [
+      {
+        id: 'groupId',
+        groupName: 'groupName',
+        contentCount: 5,
+        groupType: GroupType.MIXED,
+      },
+    ];
     const roomStats = new RoomStats(groupStats, 0, 0, 0, 0);
     mockRoomStatsService.getStats.and.returnValue(of(roomStats));
     fixture.detectChanges();

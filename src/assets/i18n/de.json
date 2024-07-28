@@ -397,6 +397,7 @@
     "join-quiz": "Quiz beitreten",
     "get-ready": "Mach dich bereit!",
     "get-ready-alias": "Mach dich bereit, {{alias}}!",
+    "content-not-published": "Inhalt nicht freigeschaltet",
     "leaderboard": "Rangliste",
     "no-leaderboard-entries": "Noch keine Ergebnisse.",
     "points": "Punkte",
@@ -404,7 +405,9 @@
     "group-type-quiz": "Quiz",
     "group-type-survey": "Umfrage",
     "group-type-flashcards": "Lernkarten",
-    "content-count": "{{count}} Inhalte"
+    "content-count": "{{count}} Inhalte",
+    "answer-fast-to-get-more-points": "Antworte schnell, um mehr Punkte zu bekommen",
+    "answer-correct-to-get-points": "Antworte richtig, um Punkte zu bekommen"
   },
   "answer": {
     "word": "Schlagwort",

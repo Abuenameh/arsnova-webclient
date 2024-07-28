@@ -63,6 +63,7 @@ import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loa
 import { CoreModule } from '@app/core/core.module';
 import { ContentGroup, GroupType } from '@app/core/models/content-group';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
+import { ContentState } from '@app/core/models/content-state';
 
 interface ContentActionTab {
   route: string;
@@ -154,7 +155,7 @@ export class ContentParticipantComponent
   wordcloudAnswer?: MultipleTextsAnswer;
   textAnswer?: TextAnswer;
   numericAnswer?: NumericAnswer;
-  qtiAnswer!: QtiAnswer;
+  qtiAnswer?: QtiAnswer;
 
   selectedRoute = '';
   endDate?: Date;
@@ -233,34 +234,46 @@ export class ContentParticipantComponent
           (this.answeringLocked && !newState.answeringEndTime)
         ) {
           this.content.state = newState;
-          this.answerReset.emit(content.id);
-          this.alreadySent = false;
-          this.answeringLocked = false;
-          this.endDate = undefined;
-          this.answer = undefined;
-          this.initAnswerData();
+          this.resetAnswer();
           const msg = this.translateService.translate(
             content.state.round === 1
               ? 'participant.content.answers-reset'
               : 'participant.content.new-round-started'
           );
           this.notificationService.show(msg);
-        } else if (
-          !this.content.state.answeringEndTime &&
-          newState.answeringEndTime
-        ) {
-          this.startCountdown(newState.answeringEndTime);
-        } else if (
-          this.content.state.answeringEndTime &&
-          newState.answeringEndTime &&
-          newState.answeringEndTime !== this.content.state.answeringEndTime
-        ) {
+          if (content.state.round > 1 && newState.answeringEndTime) {
+            this.startCountdown(newState.answeringEndTime);
+          }
+        } else if (this.isContentStarted(newState)) {
+          this.startCountdown(newState.answeringEndTime!);
+        } else if (this.isContentStopped(newState)) {
           this.answeringLocked = true;
         }
         this.content.state = newState;
         this.updateTab('');
         this.isLoading = false;
       });
+  }
+
+  private isContentStarted(newState: ContentState): boolean {
+    return !this.content.state.answeringEndTime && !!newState.answeringEndTime;
+  }
+
+  private isContentStopped(newState: ContentState): boolean {
+    return (
+      !!this.content.state.answeringEndTime &&
+      !!newState.answeringEndTime &&
+      newState.answeringEndTime !== this.content.state.answeringEndTime
+    );
+  }
+
+  private resetAnswer(): void {
+    this.answerReset.emit(this.content.id);
+    this.alreadySent = false;
+    this.answeringLocked = false;
+    this.endDate = undefined;
+    this.answer = undefined;
+    this.initAnswerData();
   }
 
   private startCountdown(endDate: Date): void {
@@ -285,7 +298,7 @@ export class ContentParticipantComponent
   }
 
   checkForCountdown(): void {
-    if (this.contentGroup.groupType === GroupType.QUIZ) {
+    if (this.contentPublishService.isGroupLive(this.contentGroup)) {
       if (this.content.state.answeringEndTime) {
         const now = new Date();
         if (

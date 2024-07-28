@@ -2,7 +2,11 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { ContentService } from '@app/core/services/http/content.service';
 import { Content } from '@app/core/models/content';
-import { ContentGroup, GroupType } from '@app/core/models/content-group';
+import {
+  ContentGroup,
+  GroupType,
+  PublishingMode,
+} from '@app/core/models/content-group';
 import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
 import {
   STEPPER_ANIMATION_DURATION,
@@ -42,6 +46,8 @@ import { CdkStep } from '@angular/cdk/stepper';
 import { FlexModule } from '@angular/flex-layout';
 import { CoreModule } from '@app/core/core.module';
 import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
+import { BaseCardComponent } from '@app/standalone/base-card/base-card.component';
+import { ContentWaitingComponent } from '@app/standalone/content-waiting/content-waiting.component';
 
 @Component({
   selector: 'app-participant-content-carousel-page',
@@ -57,6 +63,8 @@ import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loa
     SeriesOverviewComponent,
     AsyncPipe,
     TranslocoPipe,
+    BaseCardComponent,
+    ContentWaitingComponent,
   ],
   providers: [FocusModeService],
 })
@@ -238,9 +246,14 @@ export class ParticipantContentCarouselPageComponent
     );
     if (publishedIds.length > 0 && this.contentGroup.published) {
       this.contentService
-        .getContentsByIds(this.contentGroup.roomId, publishedIds)
-        .subscribe((contents) => {
-          this.contents = this.contentService.getSupportedContents(contents);
+        .getContentsByIds(
+          this.contentGroup.roomId,
+          this.contentGroup.contentIds
+        )
+        .subscribe((contents: Content[]) => {
+          this.contents = this.contentService.getSupportedContents(
+            contents.filter((c) => !!c)
+          );
           if (nextContentId) {
             lastContentIndex = this.getIndexOfContentById(nextContentId);
           }
@@ -419,19 +432,15 @@ export class ParticipantContentCarouselPageComponent
       if (this.started) {
         setTimeout(() => {
           if (index < this.contents.length - 1) {
-            if (
-              this.contentGroup.groupType !== GroupType.QUIZ ||
-              (this.contentGroup.groupType === GroupType.QUIZ &&
-                !this.isContentTimerActive(this.contents[this.currentStep]))
-            ) {
+            if (this.contentGroup.publishingMode !== PublishingMode.LIVE) {
               this.nextContent();
               setTimeout(() => {
                 document.getElementById('step')?.focus();
               }, 200);
             }
           } else if (
-            this.contentGroup.groupType !== GroupType.QUIZ ||
-            (this.contentGroup.groupType === GroupType.QUIZ &&
+            this.contentGroup.publishingMode !== PublishingMode.LIVE ||
+            (this.contentGroup.publishingMode === PublishingMode.LIVE &&
               this.contents.length === this.contentGroup.contentIds.length)
           ) {
             this.goToOverview();
@@ -455,15 +464,22 @@ export class ParticipantContentCarouselPageComponent
             this.answers = [];
             this.alreadySent = new Map<number, boolean>();
             for (const [index, content] of this.contents.entries()) {
-              if (answersAdded < answers.length) {
-                for (const answer of answers) {
-                  if (content.id === answer.contentId) {
-                    this.answers[index] = answer;
-                    answersAdded++;
+              if (
+                this.contentPublishService.isIndexPublished(
+                  this.contentGroup,
+                  index
+                )
+              ) {
+                if (answersAdded < answers.length) {
+                  for (const answer of answers) {
+                    if (content.id === answer.contentId) {
+                      this.answers[index] = answer;
+                      answersAdded++;
+                    }
                   }
                 }
+                this.alreadySent.set(index, !!this.answers[index]);
               }
-              this.alreadySent.set(index, !!this.answers[index]);
             }
             this.finishLoading();
             this.checkIfLastContentExists(lastContentIndex);
@@ -497,7 +513,7 @@ export class ParticipantContentCarouselPageComponent
         if (this.focusModeEnabled) {
           this.reloadContents();
         } else if (
-          this.contentGroup.groupType === GroupType.QUIZ &&
+          this.contentGroup.publishingMode === PublishingMode.LIVE &&
           changedEvent.hasPropertyChanged('publishingIndex')
         ) {
           this.isReloading = true;

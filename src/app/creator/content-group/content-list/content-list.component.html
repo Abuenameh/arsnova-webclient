@@ -42,7 +42,7 @@
             (keyup)="moveAnswer($event, i)"
             #sortListItem
             mat-list-item
-            attr.aria-label="{{
+            [attr.aria-label]="
               'creator.content.a11y-content-item-selected'
                 | transloco
                   : {
@@ -50,7 +50,7 @@
                       length: contents.length,
                       body: content.renderedBody | a11yRenderedBody,
                     }
-            }}"
+            "
             class="content-box primary-border-color"
             [routerLink]="(i + 1).toString()"
             [ngClass]="{
@@ -241,24 +241,65 @@
                         <mat-icon>visibility_off</mat-icon>
                       </button>
                     }
-                    @if (
-                      !isModerator &&
-                      isRangePublished() &&
-                      !isLiveMode() &&
-                      i !== contentGroup.publishingIndex
-                    ) {
-                      <button
-                        mat-icon-button
-                        color="primary"
-                        (click)="
-                          updatePublishingIndex(i); $event.stopPropagation()
-                        "
-                        [matTooltip]="
-                          'creator.content.publish-up-to' | transloco
-                        "
-                      >
-                        <mat-icon>lock_open</mat-icon>
-                      </button>
+                    @if (!isModerator && isLiveMode()) {
+                      @if (isStarted(i)) {
+                        <button
+                          mat-icon-button
+                          style="margin-right: 8px"
+                          class="stop-button"
+                          (click)="stopContent(i); $event.stopPropagation()"
+                          [matTooltip]="
+                            'creator.content.stop-content' | transloco
+                          "
+                        >
+                          <mat-icon>stop</mat-icon>
+                        </button>
+                      } @else {
+                        <div
+                          (click)="$event.stopPropagation()"
+                          [matTooltip]="
+                            (startedContentIndex !== undefined
+                              ? 'creator.content.stop-active-content-to-start'
+                              : hasFormatRounds(content.format)
+                                ? 'creator.content.starting-new-round-not-possible'
+                                : 'creator.content.starting-multiple-rounds-not-available-for-content-type'
+                            ) | transloco
+                          "
+                          [matTooltipDisabled]="
+                            startedContentIndex == undefined &&
+                            !(
+                              finishedContents.get(content.id) &&
+                              (content.state.round > 1 ||
+                                !hasFormatRounds(content.format))
+                            )
+                          "
+                        >
+                          <button
+                            mat-icon-button
+                            [disabled]="
+                              startedContentIndex !== undefined ||
+                              (finishedContents.get(content.id) &&
+                                (content.state.round > 1 ||
+                                  !hasFormatRounds(content.format)))
+                            "
+                            style="margin-right: 8px"
+                            class="start-button"
+                            (click)="startContent(i); $event.stopPropagation()"
+                            [matTooltip]="
+                              (finishedContents.get(content.id)
+                                ? 'creator.content.start-new-round'
+                                : 'creator.content.start-content'
+                              ) | transloco
+                            "
+                          >
+                            <mat-icon>{{
+                              finishedContents.get(content.id)
+                                ? 'replay'
+                                : 'play_arrow'
+                            }}</mat-icon>
+                          </button>
+                        </div>
+                      }
                     }
                     @if (!isModerator && isLiveMode()) {
                       @if (isStarted(i)) {
@@ -383,22 +424,15 @@
                           }}</span>
                         </button>
                       }
-                      <div
-                        [matTooltip]="
-                          'creator.content.starting-new-round-not-possible'
-                            | transloco
-                        "
-                        [matTooltipDisabled]="content.state.round === 1"
-                        matTooltipPosition="before"
-                      >
-                        @if (
-                          [
-                            ContentType.CHOICE,
-                            ContentType.BINARY,
-                            ContentType.SCALE,
-                            ContentType.NUMERIC,
-                          ].includes(content.format)
-                        ) {
+                      @if (hasFormatRounds(content.format) && !isLiveMode()) {
+                        <div
+                          [matTooltip]="
+                            'creator.content.starting-new-round-not-possible'
+                              | transloco
+                          "
+                          [matTooltipDisabled]="content.state.round === 1"
+                          matTooltipPosition="before"
+                        >
                           <button
                             mat-menu-item
                             (click)="startNewRound(content)"
@@ -407,8 +441,8 @@
                             <mat-icon>replay</mat-icon>
                             {{ 'creator.content.start-new-round' | transloco }}
                           </button>
-                        }
-                      </div>
+                        </div>
+                      }
                       <button mat-menu-item (click)="deleteContent(i)">
                         <mat-icon color="warn">delete_forever</mat-icon>
                         <span>{{
@@ -425,7 +459,13 @@
                         ) {
                           <button
                             mat-menu-item
-                            [disabled]="i === currentGroupIndex"
+                            [disabled]="
+                              i === currentGroupIndex ||
+                              !isCompatibleWithGroupType(
+                                content,
+                                groupStats.groupType
+                              )
+                            "
                             (click)="
                               useContentInOtherGroup(
                                 content.id,
@@ -478,13 +518,26 @@
           </button>
           @if (isRangePublished() && contentGroup.publishingIndex === i) {
             <div
+              #publishingDivider
               cdkDrag
               [cdkDragDisabled]="isLiveMode()"
               (cdkDragStarted)="publishingChangeActive = true"
               (cdkDragDropped)="dropPublishingDivider($event)"
+              (keyup.control.ArrowUp)="movePublishingDividerUp(i)"
+              (keyup.control.ArrowDown)="movePublishingDividerDown(i)"
               cdkDragBoundary=".content-list"
               class="locked-divider-container"
               [ngClass]="{ 'static-divider': isLiveMode() }"
+              [tabindex]="isLiveMode() ? -1 : 0"
+              [attr.aria-label]="
+                (isLiveMode()
+                  ? 'creator.content.publishing-index-info-live'
+                  : 'creator.content.publishing-index-info'
+                ) | transloco: { index: contentGroup.publishingIndex + 1 }
+              "
+              appHotkey="p"
+              [appHotkeyDisabled]="isLiveMode()"
+              [appHotkeyTitle]="'creator.content.edit-publishing' | transloco"
             >
               <div
                 class="locked-divider"
