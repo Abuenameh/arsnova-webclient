@@ -5,18 +5,18 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
-"@abuenameh/qti-components@npm:^6.7.1-29-abu-0":
-  version: 6.7.1-29-abu-3
-  resolution: "@abuenameh/qti-components@npm:6.7.1-29-abu-3"
+"@abuenameh/qti-components@npm:^6.9.0-abu-2":
+  version: 6.9.0-abu-2
+  resolution: "@abuenameh/qti-components@npm:6.9.0-abu-2"
   dependencies:
-    "@rollup/rollup-linux-x64-gnu": "npm:^4.9.6"
+    "@rollup/rollup-linux-x64-gnu": "npm:^4.18.1"
   peerDependencies:
     "@lit/context": ^1.1.0
     lit: ^3.1.1
   dependenciesMeta:
     "@rollup/rollup-linux-x64-gnu":
       optional: true
-  checksum: 10c0/f99ac27264654febe77a1fda49958b28f5b5bd3ae4ebb0e6fc89a387f32807098868575a9b69db440802163442c5e0e324398494e2fb0894fbd44109a8158ab6
+  checksum: 10c0/fc89dfd14e30321193fb66c0ec2db41d8524dc1fa6866c5105d6a2f927021011d577ba5241fc8139e034f7bf645ce6f6724d805c5e35467444ce0c23e39c45b1
   languageName: node
   linkType: hard
 
@@ -4473,9 +4473,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/rollup-linux-x64-gnu@npm:4.19.0, @rollup/rollup-linux-x64-gnu@npm:^4.9.6":
+"@rollup/rollup-linux-x64-gnu@npm:4.19.0":
   version: 4.19.0
   resolution: "@rollup/rollup-linux-x64-gnu@npm:4.19.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@rollup/rollup-linux-x64-gnu@npm:^4.18.1":
+  version: 4.19.1
+  resolution: "@rollup/rollup-linux-x64-gnu@npm:4.19.1"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -6852,7 +6859,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "arsnova-webclient@workspace:."
   dependencies:
-    "@abuenameh/qti-components": "npm:^6.7.1-29-abu-0"
+    "@abuenameh/qti-components": "npm:^6.9.0-abu-2"
     "@angular-devkit/build-angular": "npm:18.0.7"
     "@angular-eslint/builder": "npm:18.1.0"
     "@angular-eslint/eslint-plugin": "npm:18.1.0"
