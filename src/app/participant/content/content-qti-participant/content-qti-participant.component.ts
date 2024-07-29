@@ -74,6 +74,10 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
         baseType: response.baseType,
         value:
           response.cardinality === 'single' ? response.value : response.values,
+        correctResponse:
+          response.cardinality === 'single'
+            ? response.correctResponse
+            : response.correctResponses,
         type: 'response',
       }));
     }
@@ -112,8 +116,16 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
         response.cardinality === 'single' ? (response.value as string) : '',
       values:
         response.cardinality !== 'single' ? (response.value as string[]) : [''],
+      correctResponse:
+        response.cardinality === 'single'
+          ? (response.correctResponse as string)
+          : '',
+      correctResponses:
+        response.cardinality !== 'single'
+          ? (response.correctResponse as string[])
+          : [''],
     }));
-    let qti = this.qtiComp?.qti?.nativeElement;
+    const qti = this.qtiComp?.qti?.nativeElement;
     qti?.processResponse();
     answer.score = Number(qti?.getOutcome('SCORE').value) || 0;
     answer.maxScore = Number(qti?.getOutcome('MAXSCORE').value) || 0;

@@ -42,6 +42,20 @@ export class ContentQtiAnswerComponent {
   }
 
   itemConnected(event: CustomEvent) {
+    if (this.answer) {
+      this.responses = this.answer.responses.map((response) => ({
+        identifier: response.identifier,
+        cardinality: response.cardinality,
+        baseType: response.baseType,
+        value:
+          response.cardinality === 'single' ? response.value : response.values,
+        correctResponse:
+          response.cardinality === 'single'
+            ? response.correctResponse
+            : response.correctResponses,
+        type: 'response',
+      }));
+    }
     const qtiItem = event.target as QtiAssessmentItem;
     qtiItem.variables = this.responses;
     if (this.showAnswerIndicator()) {

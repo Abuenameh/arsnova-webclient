@@ -33,6 +33,15 @@
           .parse(fn.variable(identifier))
           .isEqual(ce.parse(fn.correct(identifier)));
       };
+      globalThis.setMathfieldStatus = (identifier, status) => {
+        setTimeout(() => {
+          var pci = document.querySelector(
+            `qti-portable-custom-interaction[response-identifier="${identifier}"] > qti-interaction-markup`
+          );
+          pci?.setAttribute('status', status);
+          pci?.dispatchEvent(new CustomEvent('status', { detail: status }));
+        });
+      };
     </script>
     <script type="text/javascript">
       window.onload = () => {

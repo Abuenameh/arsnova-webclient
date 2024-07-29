@@ -6,4 +6,6 @@ export interface QtiResponse {
   baseType: BaseType;
   value: string;
   values: string[];
+  correctResponse: string;
+  correctResponses: string[];
 }
