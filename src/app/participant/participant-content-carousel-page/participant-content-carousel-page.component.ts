@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { ContentService } from '@app/core/services/http/content.service';
 import { Content } from '@app/core/models/content';
@@ -7,7 +13,7 @@ import {
   GroupType,
   PublishingMode,
 } from '@app/core/models/content-group';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import {
   STEPPER_ANIMATION_DURATION,
   StepperComponent,
@@ -19,15 +25,12 @@ import {
 } from '@app/core/services/util/global-storage.service';
 import { AnnounceService } from '@app/core/services/util/announce.service';
 import { Location, AsyncPipe } from '@angular/common';
-import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import { AuthenticationService } from '@app/core/services/http/authentication.service';
-import { Answer } from '@app/core/models/answer';
 import {
   AdvancedSnackBarTypes,
   NotificationService,
 } from '@app/core/services/util/notification.service';
 import { ContentGroupService } from '@app/core/services/http/content-group.service';
-import { EventService } from '@app/core/services/util/event.service';
 import { EntityChanged } from '@app/core/models/events/entity-changed';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 import { ContentFocusState } from '@app/core/models/events/remote/content-focus-state';
@@ -35,7 +38,6 @@ import { RoutingService } from '@app/core/services/util/routing.service';
 import { ContentCarouselService } from '@app/core/services/util/content-carousel.service';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
 import { FocusModeService } from '@app/participant/_services/focus-mode.service';
-import { EntityChangedPayload } from '@app/core/models/events/entity-changed-payload';
 import { ContentLicenseAttribution } from '@app/core/models/content-license-attribution';
 import { LICENSES } from '@app/core/models/licenses';
 import { RoomUserAliasService } from '@app/core/services/http/room-user-alias.service';
@@ -48,6 +50,8 @@ import { CoreModule } from '@app/core/core.module';
 import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
 import { BaseCardComponent } from '@app/standalone/base-card/base-card.component';
 import { ContentWaitingComponent } from '@app/standalone/content-waiting/content-waiting.component';
+import { AnswerResultType } from '@app/core/models/answer-result';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-participant-content-carousel-page',
@@ -81,16 +85,16 @@ export class ParticipantContentCarouselPageComponent
   contentGroup: ContentGroup;
   shortId: string;
   isLoading = true;
-  alreadySent: Map<number, boolean> = new Map<number, boolean>();
   started = false;
-  answers: (Answer | undefined)[] = [];
+  answerResults = new Map<number, AnswerResultType>();
+  AnswerResultType = AnswerResultType;
+  userId?: string;
   currentStep = 0;
   isReloading = false;
   isReloadingCurrentContent = false;
   displaySnackBar = false;
   focusModeEnabled = false;
   lockedContentId?: string;
-  changesSubscription?: Subscription;
   routeChangedSubscription?: Subscription;
 
   isFinished = false;
@@ -112,16 +116,16 @@ export class ParticipantContentCarouselPageComponent
     private announceService: AnnounceService,
     private globalStorageService: GlobalStorageService,
     private location: Location,
-    private answerService: ContentAnswerService,
     private authenticationService: AuthenticationService,
     private notificationService: NotificationService,
-    private eventService: EventService,
     private router: Router,
     private routingService: RoutingService,
     private contentCarouselService: ContentCarouselService,
     private contentPublishService: ContentPublishService,
     private focusModeService: FocusModeService,
-    private roomUserAliasService: RoomUserAliasService
+    private roomUserAliasService: RoomUserAliasService,
+    private contentGroupService: ContentGroupService,
+    private destroyRef: DestroyRef
   ) {
     this.shortId = route.snapshot.data.room.shortId;
     this.showStepper = route.snapshot.data.showStepper ?? true;
@@ -132,14 +136,10 @@ export class ParticipantContentCarouselPageComponent
   ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
-    if (this.changesSubscription) {
-      this.changesSubscription.unsubscribe();
-    }
     if (this.routeChangedSubscription) {
       this.routeChangedSubscription.unsubscribe();
     }
-    this.destroyed$.next();
-    this.destroyed$.complete();
+    this.contentCarouselService.setLastContentAnswered(false);
   }
 
   ngOnInit() {
@@ -175,11 +175,10 @@ export class ParticipantContentCarouselPageComponent
     }
     this.getContents(lastContentIndex);
     this.loadAttributions();
-    this.changesSubscription = this.eventService
-      .on('EntityChanged')
-      .subscribe((changes) => {
-        this.handleStateEvent(changes as EntityChangedPayload<ContentGroup>);
-      });
+    this.contentGroupService
+      .getChangesStreamForEntity(this.contentGroup)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((e) => this.handleStateEvent(e));
     this.focusModeService
       .getContentState()
       .pipe(takeUntil(this.destroyed$))
@@ -191,13 +190,12 @@ export class ParticipantContentCarouselPageComponent
       .subscribe((route) => {
         const newGroup = route.params['seriesName'];
         if (newGroup && newGroup !== this.contentGroup.name) {
-          this.contentgroupService
-            .getByRoomIdAndName(this.contentGroup.roomId, newGroup)
-            .subscribe((group) => {
-              this.contentGroup = group;
-              this.isReloading = true;
-              this.getContents();
-              this.loadAttributions();
+          this.router
+            .navigateByUrl('/', { skipLocationChange: true })
+            .then(() => {
+              this.router.navigate(['..', newGroup], {
+                relativeTo: this.route,
+              });
             });
         }
       });
@@ -240,7 +238,6 @@ export class ParticipantContentCarouselPageComponent
   }
 
   getContents(lastContentIndex?: number, nextContentId?: string) {
-    this.contents = [];
     const publishedIds = this.contentPublishService.filterPublishedIds(
       this.contentGroup
     );
@@ -276,6 +273,7 @@ export class ParticipantContentCarouselPageComponent
           this.getAnswers(lastContentIndex);
         });
     } else {
+      this.contents = [];
       this.finishLoading();
     }
   }
@@ -321,8 +319,8 @@ export class ParticipantContentCarouselPageComponent
   }
 
   updateContentIndexUrl(index: number = 0) {
-    setTimeout(() => {
-      if ((!!index && this.currentStep !== index) || !this.isReloading) {
+    if (this.currentStep !== index && (!!index || !this.isReloading)) {
+      setTimeout(() => {
         this.currentStep = index || 0;
         this.replaceUrl([
           'p',
@@ -331,8 +329,8 @@ export class ParticipantContentCarouselPageComponent
           this.contentGroup.name,
           index + 1,
         ]);
-      }
-    }, STEPPER_ANIMATION_DURATION);
+      }, STEPPER_ANIMATION_DURATION);
+    }
   }
 
   isContentTimerActive(content: Content): boolean {
@@ -370,7 +368,7 @@ export class ParticipantContentCarouselPageComponent
     for (let i = 0; i < this.contents.length; i++) {
       const content = this.contents[i];
       if (
-        this.alreadySent.get(i) === false &&
+        this.answerResults.get(i) === AnswerResultType.UNANSWERED &&
         (!content.state.answeringEndTime ||
           this.isContentTimerActive(content)) &&
         !this.isInfoContent(content)
@@ -392,8 +390,7 @@ export class ParticipantContentCarouselPageComponent
     if (this.currentStep < this.contents.length - 1) {
       this.stepper.next();
     } else {
-      this.stepper.headerPos = 0;
-      this.stepper.onClick(0);
+      this.goToOverview();
     }
   }
 
@@ -413,78 +410,57 @@ export class ParticipantContentCarouselPageComponent
     this.location.replaceState(this.router.serializeUrl(urlTree));
   }
 
-  resetAnswer(contentId: string, index: number): void {
-    this.alreadySent.set(index, false);
-    this.answers[this.getIndexOfContentById(contentId)] = undefined;
+  resetAnswer(index: number): void {
+    this.answerResults.set(index, AnswerResultType.UNANSWERED);
   }
 
-  receiveSentStatus(answer: Answer, index: number) {
-    this.alreadySent.set(index, !!answer);
+  receiveSentStatus(answerResultType: AnswerResultType, index: number) {
+    this.answerResults.set(index, answerResultType);
     if (index === this.contents.length - 1) {
-      this.hasAnsweredLastContent = this.alreadySent.get(index) || false;
+      this.hasAnsweredLastContent =
+        answerResultType !== AnswerResultType.UNANSWERED;
     }
     this.contentCarouselService.setLastContentAnswered(
       this.hasAnsweredLastContent
     );
     this.checkState();
-    this.answers[this.getIndexOfContentById(answer.contentId)] = answer;
-    if (!this.focusModeEnabled) {
-      if (this.started) {
-        setTimeout(() => {
-          if (index < this.contents.length - 1) {
-            if (this.contentGroup.publishingMode !== PublishingMode.LIVE) {
-              this.nextContent();
-              setTimeout(() => {
-                document.getElementById('step')?.focus();
-              }, 200);
-            }
-          } else if (
-            this.contentGroup.publishingMode !== PublishingMode.LIVE ||
-            (this.contentGroup.publishingMode === PublishingMode.LIVE &&
-              this.contents.length === this.contentGroup.contentIds.length)
-          ) {
-            this.goToOverview();
-          }
-        }, 1000);
-      }
+    if (
+      !this.focusModeEnabled &&
+      this.started &&
+      this.contentGroup.publishingMode !== PublishingMode.LIVE &&
+      this.contentGroup.groupType !== GroupType.QUIZ
+    ) {
+      setTimeout(() => {
+        if (index < this.contents.length - 1) {
+          this.nextContent();
+          setTimeout(() => {
+            document.getElementById('step')?.focus();
+          }, 200);
+        } else {
+          this.goToOverview();
+        }
+      }, 1000);
     }
   }
 
   getAnswers(lastContentIndex?: number) {
     this.authenticationService.getCurrentAuthentication().subscribe((auth) => {
-      this.answerService
-        .getAnswersByUserIdContentIds(
+      this.userId = auth.userId;
+      this.contentGroupService
+        .getAnswerStats(
           this.contentGroup.roomId,
-          auth.userId,
-          this.contents.map((c) => c.id)
+          this.contentGroup.id,
+          this.userId
         )
-        .subscribe(
-          (answers) => {
-            let answersAdded = 0;
-            this.answers = [];
-            this.alreadySent = new Map<number, boolean>();
-            for (const [index, content] of this.contents.entries()) {
-              if (
-                this.contentPublishService.isIndexPublished(
-                  this.contentGroup,
-                  index
-                )
-              ) {
-                if (answersAdded < answers.length) {
-                  for (const answer of answers) {
-                    if (content.id === answer.contentId) {
-                      this.answers[index] = answer;
-                      answersAdded++;
-                    }
-                  }
-                }
-                this.alreadySent.set(index, !!this.answers[index]);
-              }
-            }
+        .subscribe({
+          next: (resultOverview) => {
+            this.contents.forEach((c, i) => {
+              this.answerResults.set(i, resultOverview.answerResults[i].state);
+            });
             this.finishLoading();
             this.checkIfLastContentExists(lastContentIndex);
           },
-          () => {
+          error: () => {
             this.finishLoading();
             const msg = this.translateService.translate(
               'participant.answer.group-not-available'
@@ -493,57 +469,50 @@ export class ParticipantContentCarouselPageComponent
               msg,
               AdvancedSnackBarTypes.WARNING
             );
-          }
-        );
+          },
+        });
     });
   }
 
-  handleStateEvent(changes: EntityChangedPayload<ContentGroup>) {
-    if (changes.entity.id === this.contentGroup.id) {
-      this.contentGroup = changes.entity;
-      const changedEvent = new EntityChanged(
-        'ContentGroup',
-        changes.entity,
-        changes.changedProperties
+  handleStateEvent(changedEvent: EntityChanged<ContentGroup>) {
+    this.contentGroup = changedEvent.payload.entity;
+    if (
+      !changedEvent.hasPropertyChanged('publishingMode') &&
+      !changedEvent.hasPropertyChanged('publishingIndex')
+    ) {
+      return;
+    }
+    if (this.focusModeEnabled) {
+      this.reloadContents();
+    } else if (
+      this.contentGroup.publishingMode === PublishingMode.LIVE &&
+      changedEvent.hasPropertyChanged('publishingIndex')
+    ) {
+      this.getContents(
+        this.currentStep,
+        this.contentGroup.contentIds[
+          changedEvent.payload.entity.publishingIndex
+        ]
       );
-      if (
-        changedEvent.hasPropertyChanged('publishingMode') ||
-        changedEvent.hasPropertyChanged('publishingIndex')
-      ) {
-        if (this.focusModeEnabled) {
-          this.reloadContents();
-        } else if (
-          this.contentGroup.publishingMode === PublishingMode.LIVE &&
-          changedEvent.hasPropertyChanged('publishingIndex')
-        ) {
-          this.isReloading = true;
-          this.getContents(
-            this.currentStep,
-            this.contentGroup.contentIds[changes.entity.publishingIndex]
-          );
-          this.showOverview = false;
-        } else {
-          if (!this.displaySnackBar) {
-            this.displaySnackBar = true;
-            const contentsChangedMessage = this.translateService.translate(
-              'participant.answer.state-changed'
-            );
-            const loadString = this.translateService.translate(
-              'participant.answer.load'
-            );
-            this.notificationService.show(contentsChangedMessage, loadString, {
-              duration: 5000,
-            });
-            this.notificationService.snackRef.onAction().subscribe(() => {
-              this.displaySnackBar = false;
-              this.reloadContents();
-            });
-            this.notificationService.snackRef.afterDismissed().subscribe(() => {
-              this.displaySnackBar = false;
-            });
-          }
-        }
-      }
+      this.showOverview = false;
+    } else if (!this.displaySnackBar) {
+      this.displaySnackBar = true;
+      const contentsChangedMessage = this.translateService.translate(
+        'participant.answer.state-changed'
+      );
+      const loadString = this.translateService.translate(
+        'participant.answer.load'
+      );
+      this.notificationService.show(contentsChangedMessage, loadString, {
+        duration: 5000,
+      });
+      this.notificationService.snackRef.onAction().subscribe(() => {
+        this.displaySnackBar = false;
+        this.reloadContents();
+      });
+      this.notificationService.snackRef.afterDismissed().subscribe(() => {
+        this.displaySnackBar = false;
+      });
     }
   }
 

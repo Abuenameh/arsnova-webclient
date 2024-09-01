@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthProvider } from '@app/core/models/auth-provider';
 import { Content } from '@app/core/models/content';
@@ -27,7 +28,7 @@ import {
 import { RoutingService } from '@app/core/services/util/routing.service';
 import { PublishContentGroupTemplateComponent } from '@app/creator/content-group/_dialogs/publish-content-group-template/publish-content-group-template.component';
 import { ContentGroupSettingsComponent } from '@app/standalone/content-group-settings/content-group-settings.component';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import {
   Observable,
   Subject,
@@ -253,9 +254,8 @@ export class ContentGroupPageComponent implements OnInit, OnDestroy {
             msg,
             AdvancedSnackBarTypes.WARNING
           );
-          this.contentStats.clear();
           this.totalCorrect = 0;
-          if (this.contentGroup.publishingMode === PublishingMode.LIVE) {
+          if (this.isLiveMode()) {
             this.updateContentGroup({ publishingIndex: 0 }).subscribe(
               (contentGroup) => {
                 this.contentGroup.publishingIndex =
@@ -319,6 +319,10 @@ export class ContentGroupPageComponent implements OnInit, OnDestroy {
         data: {
           contentGroup: { ...this.contentGroup },
           groupNames: this.contentGroupStats.map((s) => s.groupName),
+          alreadyAnswered:
+            Array.from(this.contentStats.values()).filter(
+              (stats) => stats.count > 0
+            ).length > 0,
         },
       }
     );
@@ -385,10 +389,15 @@ export class ContentGroupPageComponent implements OnInit, OnDestroy {
     timer(0, STATS_REFRESH_INTERVAL)
       .pipe(
         take(STATS_REFRESH_LIMIT),
-        takeWhile(() => this.isContentStarted)
+        takeWhile(() => this.isContentStarted),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.loadStats();
       });
+  }
+
+  isLiveMode(): boolean {
+    return this.contentGroup.publishingMode === PublishingMode.LIVE;
   }
 }

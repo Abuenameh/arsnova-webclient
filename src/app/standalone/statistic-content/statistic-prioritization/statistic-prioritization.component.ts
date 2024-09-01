@@ -16,10 +16,9 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ContentService } from '@app/core/services/http/content.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
-import { EventService } from '@app/core/services/util/event.service';
 import { PresentationService } from '@app/core/services/util/presentation.service';
 import { ContentPrioritization } from '@app/core/models/content-prioritization';
 import { PrioritizationRoundStatistics } from '@app/core/models/round-statistics';
@@ -64,16 +63,9 @@ export class StatisticPrioritizationComponent
     protected contentService: ContentService,
     protected translateService: TranslocoService,
     protected themeService: ThemeService,
-    protected eventService: EventService,
     protected presentationService: PresentationService
   ) {
-    super(
-      contentService,
-      translateService,
-      themeService,
-      eventService,
-      presentationService
-    );
+    super(contentService, translateService, themeService, presentationService);
   }
 
   ngOnDestroy() {
@@ -212,9 +204,6 @@ export class StatisticPrioritizationComponent
                 context.dataset.data[context.dataIndex] as number
               );
             },
-            display: (context) => {
-              return (context.dataset.data[context.dataIndex] as number) > 0;
-            },
             color: this.colorStrings.onBackground,
             anchor: 'start',
             align: 'start',
@@ -284,7 +273,7 @@ export class StatisticPrioritizationComponent
     let label: string;
     if (this.settings.contentVisualizationUnitPercent) {
       label = this.getLabelWithPercentageSign(
-        (value / (this.answerCount - this.abstentionCount)).toFixed(0)
+        (value / (this.answerCount - this.abstentionCount) || 0).toFixed(0)
       );
     } else {
       label = value.toString();

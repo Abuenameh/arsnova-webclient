@@ -19,7 +19,7 @@ import {
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ContentChoice } from '@app/core/models/content-choice';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
 import { takeUntil } from 'rxjs/operators';
@@ -29,7 +29,6 @@ import {
 } from '@app/standalone/statistic-content/statistic-content-base';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { ContentScale } from '@app/core/models/content-scale';
-import { EventService } from '@app/core/services/util/event.service';
 import { PresentationService } from '@app/core/services/util/presentation.service';
 import { AnswerOption } from '@app/core/models/answer-option';
 import { MatIcon } from '@angular/material/icon';
@@ -60,6 +59,7 @@ export class StatisticChoiceComponent
   @Input({ required: true }) visualizationUnitChanged!: EventEmitter<boolean>;
   @Input() directShow = false;
   @Input() isSurvey = false;
+  @Input() showCorrect = false;
 
   chart?: Chart;
   chartId = '';
@@ -67,7 +67,6 @@ export class StatisticChoiceComponent
   indicationColors: Array<string[]> = [[], []];
   labelLetters = 'ABCDEFGHIJKL';
   data: Array<number[]> = [[], []];
-  colorLabel = false;
   survey = false;
   options: AnswerOption[] = [];
   correctOptionIndexes: number[] = [];
@@ -87,10 +86,9 @@ export class StatisticChoiceComponent
     protected contentService: ContentService,
     protected translateService: TranslocoService,
     protected themeService: ThemeService,
-    protected eventService: EventService,
     protected presentationService: PresentationService
   ) {
-    super(contentService, eventService, translateService);
+    super(contentService, translateService);
   }
 
   ngOnDestroy() {
@@ -108,9 +106,19 @@ export class StatisticChoiceComponent
     if (this.content.options) {
       this.options = [...this.content.options];
     }
-    this.correctOptionIndexes = this.content.correctOptionIndexes;
-    this.initChart();
-    this.updateData(stats);
+    if (this.content.correctOptionIndexes || !this.showCorrect) {
+      this.correctOptionIndexes = this.content.correctOptionIndexes;
+      this.initChart();
+      this.updateData(stats);
+    } else {
+      this.contentService
+        .getCorrectChoiceIndexes(this.content.roomId, this.content.id)
+        .subscribe((correctOptionIndexes) => {
+          this.correctOptionIndexes = correctOptionIndexes;
+          this.initChart();
+          this.updateData(stats);
+        });
+    }
   }
 
   afterInit() {
@@ -131,7 +139,6 @@ export class StatisticChoiceComponent
   }
 
   toggleAnswers(visible?: boolean): boolean {
-    this.colorLabel = false;
     this.answersVisible = visible ?? !this.answersVisible;
     if (this.answersVisible) {
       this.updateChart();
@@ -258,11 +265,9 @@ export class StatisticChoiceComponent
             formatter: (value, context) => {
               return this.getDataLabel(
                 context.dataset.data[context.dataIndex] as number,
-                context.dataset.data as number[]
+                context.dataset.data as number[],
+                this.answerCount
               );
-            },
-            display: (context) => {
-              return (context.dataset.data[context.dataIndex] as number) > 0;
             },
             color: this.colorStrings.onBackground,
             anchor: 'end',
@@ -285,14 +290,14 @@ export class StatisticChoiceComponent
     if (this.chart) {
       this.chart.update();
     }
-    this.colorLabel = !this.colorLabel;
+    this.showCorrect = !this.showCorrect;
   }
 
   toggleChartColor(dataSetIndex: number, roundIndex: number) {
     const dataset = this.chart?.config.data.datasets[
       dataSetIndex
     ] as BarControllerDatasetOptions;
-    dataset.backgroundColor = this.colorLabel
+    dataset.backgroundColor = this.showCorrect
       ? this.colors[roundIndex]
       : this.indicationColors[roundIndex];
   }
@@ -410,7 +415,7 @@ export class StatisticChoiceComponent
       if (resetChart) {
         this.chart?.data.datasets.push({
           data: this.data[i],
-          backgroundColor: this.colorLabel
+          backgroundColor: this.showCorrect
             ? this.indicationColors[i]
             : this.colors[i],
         });
@@ -424,7 +429,7 @@ export class StatisticChoiceComponent
 
   prepareChartForSingleRound(resetChart: boolean) {
     const data = this.data[this.roundsToDisplay];
-    const colors = this.colorLabel
+    const colors = this.showCorrect
       ? this.indicationColors[this.roundsToDisplay]
       : this.colors[this.roundsToDisplay];
     if (resetChart) {
@@ -460,7 +465,11 @@ export class StatisticChoiceComponent
     } else if (this.active) {
       /* Wait for flip animation */
       setTimeout(() => {
-        this.prepareDataAndCreateChart(this.colors);
+        this.prepareDataAndCreateChart(
+          this.showCorrect && this.correctOptionIndexes.length > 0
+            ? this.indicationColors
+            : this.colors
+        );
       }, 300);
     }
     this.roundsDisplayed = this.roundsToDisplay;

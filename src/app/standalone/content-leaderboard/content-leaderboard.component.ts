@@ -11,6 +11,8 @@ import { CoreModule } from '@app/core/core.module';
 import { CurrentLeaderboardItem } from '@app/core/models/current-leaderboard-item';
 import { RoomUserAlias } from '@app/core/models/room-user-alias';
 import { OrdinalPipe } from '@app/core/pipes/ordinal.pipe';
+import { provideTranslocoScope } from '@jsverse/transloco';
+import { ThemeService } from '@app/core/theme/theme.service';
 
 interface LeaderboardTableItem {
   position: number;
@@ -24,6 +26,7 @@ interface LeaderboardTableItem {
 @Component({
   standalone: true,
   imports: [CoreModule, OrdinalPipe, MatSortModule],
+  providers: [provideTranslocoScope('participant')],
   selector: 'app-content-leaderboard',
   templateUrl: './content-leaderboard.component.html',
   styleUrl: './content-leaderboard.component.scss',
@@ -37,6 +40,11 @@ export class ContentLeaderboardComponent implements AfterViewInit, OnChanges {
 
   dataSource?: MatTableDataSource<LeaderboardTableItem>;
   displayedColumns = ['position', 'name', 'score'];
+  colors: string[];
+
+  constructor(private themeService: ThemeService) {
+    this.colors = this.themeService.getTextColors();
+  }
 
   ngOnChanges(): void {
     if (

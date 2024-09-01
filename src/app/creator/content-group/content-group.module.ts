@@ -17,7 +17,7 @@ import { ScaleContentFormComponent } from './content-editing/scale-content-form/
 import { BinaryContentFormComponent } from './content-editing/binary-content-form/binary-content-form.component';
 import { ContentPresentationComponent } from './content-presentation/content-presentation.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@jsverse/transloco';
 import { HintComponent } from '@app/standalone/hint/hint.component';
 import { DividerComponent } from '@app/standalone/divider/divider.component';
 import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
@@ -40,7 +40,9 @@ import { ContentStepperComponent } from '@app/standalone/content-stepper/content
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ContentGroupInfoComponent } from '@app/standalone/content-group-info/content-group-info.component';
 import { CountdownTimerComponent } from '@app/standalone/countdown-timer/countdown-timer.component';
-import { QtiContentFormComponent as QtiContentFormComponent } from '@app/creator/content-group/content-editing/qti-content-form/qti-content-form.component';
+import { PulsatingCircleComponent } from '@app/standalone/pulsating-circle/pulsating-circle.component';
+import { ShortAnswerContentFormComponent } from '@app/creator/content-group/content-editing/short-answer-content-form/short-answer-content-form.component';
+import { QtiContentFormComponent } from '@app/creator/content-group/content-editing/qti-content-form/qti-content-form.component';
 
 @NgModule({
   declarations: [
@@ -60,6 +62,7 @@ import { QtiContentFormComponent as QtiContentFormComponent } from '@app/creator
     AnswerOptionListComponent,
     PublishContentGroupTemplateComponent,
     NumericContentFormComponent,
+    ShortAnswerContentFormComponent,
     QtiContentFormComponent,
   ],
   imports: [
@@ -88,6 +91,7 @@ import { QtiContentFormComponent as QtiContentFormComponent } from '@app/creator
     FlexLayoutModule,
     ContentGroupInfoComponent,
     CountdownTimerComponent,
+    PulsatingCircleComponent,
   ],
 })
 export class ContentGroupModule {}

@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { StatisticScaleComponent } from './statistic-scale.component';
-import { EventService } from '@app/core/services/util/event.service';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ThemeService } from '@app/core/theme/theme.service';
 import {
-  MockEventService,
+  ActivatedRouteStub,
   MockGlobalStorageService,
   MockThemeService,
 } from '@testing/test-helpers';
@@ -20,6 +19,9 @@ import { GlobalStorageService } from '@app/core/services/util/global-storage.ser
 import { EventEmitter, NO_ERRORS_SCHEMA } from '@angular/core';
 import { UserSettings } from '@app/core/models/user-settings';
 import { FormattingService } from '@app/core/services/http/formatting.service';
+import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
+import { Room } from '@app/core/models/room';
+import { LanguageService } from '@app/core/services/util/language.service';
 
 describe('StatisticScaleComponent', () => {
   let component: StatisticScaleComponent;
@@ -32,7 +34,8 @@ describe('StatisticScaleComponent', () => {
   ]);
   const roundStatistics = new RoundStatistics(1, [], [], 0, 0);
   const stats = new AnswerStatistics();
-  (stats.contentId = '1234'), (stats.roundStatistics = [roundStatistics]);
+  stats.contentId = '1234';
+  stats.roundStatistics = [roundStatistics];
   const body = {
     payload: {
       stats: stats,
@@ -59,14 +62,27 @@ describe('StatisticScaleComponent', () => {
   const mockFormattingService = jasmine.createSpyObj(['postString']);
   mockFormattingService.postString.and.returnValue(of('rendered'));
 
+  const snapshot = new ActivatedRouteSnapshot();
+
+  snapshot.data = {
+    room: new Room('1234', 'shortId', 'abbreviation', 'name', 'description'),
+  };
+
+  const activatedRouteStub = new ActivatedRouteStub(
+    undefined,
+    undefined,
+    snapshot
+  );
+
+  const mockLangService = jasmine.createSpyObj(LanguageService, [
+    'ensureValidLang',
+  ]);
+  mockLangService.ensureValidLang.and.returnValue(true);
+
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [getTranslocoModule(), StatisticScaleComponent],
       providers: [
-        {
-          provide: EventService,
-          useClass: MockEventService,
-        },
         {
           provide: ContentService,
           useValue: mockContentService,
@@ -90,6 +106,14 @@ describe('StatisticScaleComponent', () => {
         {
           provide: FormattingService,
           useValue: mockFormattingService,
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: activatedRouteStub,
+        },
+        {
+          provide: LanguageService,
+          useValue: mockLangService,
         },
       ],
       schemas: [NO_ERRORS_SCHEMA],

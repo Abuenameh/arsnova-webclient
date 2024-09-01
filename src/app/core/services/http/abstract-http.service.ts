@@ -5,7 +5,7 @@ import {
   HttpParams,
 } from '@angular/common/http';
 import { Observable, pipe, take, throwError } from 'rxjs';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import {
   AdvancedSnackBarTypes,
   NotificationService,
@@ -34,7 +34,6 @@ export type HttpOptions = {
   retryInitialInterval?: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export abstract class AbstractHttpService<T> {
   protected apiUrl = {
     base: '/api',

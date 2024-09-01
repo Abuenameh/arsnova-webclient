@@ -14,8 +14,24 @@
             <span>{{ contentGroup.name }}</span>
             <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
               <app-content-group-info
-                [contentGroup]="contentGroup"
+                [groupType]="contentGroup.groupType"
+                [contentCount]="
+                  contentGroup.contentIds ? contentGroup.contentIds.length : 0
+                "
+                [published]="contentGroup.published"
               ></app-content-group-info>
+              @if (isLiveMode()) {
+                <div
+                  fxLayout="row"
+                  fxLayoutGap="4px"
+                  class="live-mode-hint"
+                  type="button"
+                  (click)="openSettings()"
+                >
+                  <mat-icon class="live-icon">play_circle</mat-icon>
+                  <span>{{ 'creator.content.live-mode' | transloco }}</span>
+                </div>
+              }
             </div>
             <mat-menu #groupSettings="matMenu">
               <button mat-menu-item [matMenuTriggerFor]="importExportMenu">
@@ -66,22 +82,21 @@
                 >
                   <mat-icon>clear_all</mat-icon>
                   <span>{{
-                    'creator.content.delete-answers' | transloco
+                    'creator.content.reset-group-results' | transloco
                   }}</span>
                 </button>
               }
-              <button mat-menu-item (click)="deleteGroup()">
+              <button
+                mat-menu-item
+                (click)="deleteGroup()"
+                [disabled]="isModerator"
+              >
                 <mat-icon color="warn">delete_forever</mat-icon>
                 {{ 'creator.content.delete-content-group' | transloco }}
               </button>
             </mat-menu>
           </div>
-          <div
-            fxLayout="row wrap"
-            fxLayoutAlign="start center"
-            fxLayoutAlign.xs="center"
-            fxLayoutGap="8px"
-          >
+          <div fxLayout="row wrap" fxLayoutAlign.xs="center" fxLayoutGap="8px">
             <div fxLayout="row" fxLayoutGap="8px">
               @if (contentGroup.groupType === GroupType.QUIZ) {
                 <button

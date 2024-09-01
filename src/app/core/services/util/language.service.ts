@@ -5,7 +5,7 @@ import {
   Injectable,
   InjectionToken,
 } from '@angular/core';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { GlobalStorageService, STORAGE_KEYS } from './global-storage.service';
 import { Language } from '@app/core/models/language';
 import { LanguageCategory } from '@app/core/models/language-category.enum';
@@ -91,5 +91,12 @@ export class LanguageService extends AbstractHttpService<void> {
 
   getIsoLanguages(): Observable<IsoLanguage[]> {
     return this.httpClient.get<IsoLanguage[]>(this.buildUri('/'));
+  }
+
+  ensureValidLang(lang?: string): string {
+    return lang &&
+      this.translateService.getAvailableLangs().some((l) => l === lang)
+      ? lang
+      : this.translateService.getActiveLang();
   }
 }

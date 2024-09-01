@@ -26,7 +26,7 @@ import { ContentType } from '@app/core/models/content-type.enum';
 import { HintType } from '@app/core/models/hint-type.enum';
 import { LeaderboardItem } from '@app/core/models/leaderboard-item';
 import { RoomUserAlias } from '@app/core/models/room-user-alias';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { CoreModule } from '@app/core/core.module';
 import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -42,6 +42,7 @@ import { MatCard } from '@angular/material/card';
 import { FlexModule } from '@angular/flex-layout';
 import { OrdinalPipe } from '@app/core/pipes/ordinal.pipe';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
+import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 
 // Max time for updating db (5000) - navigation delay (500) / 2
 const RELOAD_INTERVAL = 2250;
@@ -124,7 +125,8 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private router: Router,
     private contentCarouselService: ContentCarouselService,
-    private contentPublishService: ContentPublishService
+    private contentPublishService: ContentPublishService,
+    private answerService: ContentAnswerService
   ) {}
 
   ngOnDestroy(): void {
@@ -287,8 +289,8 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
 
   private updateCorrectChart() {
     if (this.correctChart) {
-      (this.correctChart.data.datasets[0].data = this.getScoreData()),
-        this.correctChart.update();
+      this.correctChart.data.datasets[0].data = this.getScoreData();
+      this.correctChart.update();
     } else {
       setTimeout(() => {
         this.correctChart = this.createChart(
@@ -307,8 +309,8 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
 
   private updateProgressChart() {
     if (this.progressChart) {
-      (this.progressChart.data.datasets[0].data = this.getProgressData()),
-        this.progressChart.update();
+      this.progressChart.data.datasets[0].data = this.getProgressData();
+      this.progressChart.update();
     } else {
       setTimeout(() => {
         this.progressChart = this.createChart(
@@ -322,8 +324,8 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
 
   private updatePointsChart() {
     if (this.pointsChart) {
-      (this.pointsChart.data.datasets[0].data = this.getPointChartData()),
-        this.pointsChart.update();
+      this.pointsChart.data.datasets[0].data = this.getPointChartData();
+      this.pointsChart.update();
     } else {
       setTimeout(() => {
         this.pointsChart = this.createChart(
@@ -392,21 +394,7 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
   }
 
   getIcon(state: AnswerResultType) {
-    if (!this.group.correctOptionsPublished) {
-      state = AnswerResultType.NEUTRAL;
-    }
-    switch (state) {
-      case AnswerResultType.CORRECT:
-        return 'check';
-      case AnswerResultType.PARTIALLY_CORRECT:
-        return 'check';
-      case AnswerResultType.WRONG:
-        return 'close';
-      case AnswerResultType.UNANSWERED:
-        return 'horizontal_rule';
-      default:
-        return 'fiber_manual_record';
-    }
+    return this.answerService.getAnswerResultIcon(state);
   }
 
   hasAnsweredState(state: AnswerResultType): boolean {
@@ -478,5 +466,16 @@ export class SeriesOverviewComponent implements OnInit, OnDestroy {
 
   isLiveMode(): boolean {
     return this.contentPublishService.isGroupLive(this.group);
+  }
+
+  getTrophyIconColor(): string {
+    switch (this.getPosition()) {
+      case 1:
+        return 'gold';
+      case 2:
+        return 'silver';
+      default:
+        return 'bronze';
+    }
   }
 }

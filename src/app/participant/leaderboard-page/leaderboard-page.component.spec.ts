@@ -14,6 +14,7 @@ import { ContentService } from '@app/core/services/http/content.service';
 import { Content } from '@app/core/models/content';
 import { getTranslocoModule } from '@testing/transloco-testing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ThemeService } from '@app/core/theme/theme.service';
 
 describe('LeaderboardPageComponent', () => {
   let component: LeaderboardPageComponent;
@@ -29,7 +30,8 @@ describe('LeaderboardPageComponent', () => {
   ]);
   const roundStatistics = new RoundStatistics(1, [], [], 0, 0);
   const stats = new AnswerStatistics();
-  (stats.contentId = '1234'), (stats.roundStatistics = [roundStatistics]);
+  stats.contentId = '1234';
+  stats.roundStatistics = [roundStatistics];
   const body = {
     payload: {
       stats: stats,
@@ -52,6 +54,9 @@ describe('LeaderboardPageComponent', () => {
     snapshot
   );
 
+  const themeService = jasmine.createSpyObj(ThemeService, ['getTextColors']);
+  themeService.getTextColors.and.returnValue([]);
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
@@ -71,6 +76,10 @@ describe('LeaderboardPageComponent', () => {
         {
           provide: ContentService,
           useValue: mockContentService,
+        },
+        {
+          provide: ThemeService,
+          useValue: themeService,
         },
       ],
       schemas: [NO_ERRORS_SCHEMA],

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnswerWithPoints } from '@app/core/models/answer-with-points';
 import { ContentType } from '@app/core/models/content-type.enum';
@@ -10,11 +10,12 @@ import {
   NotificationService,
 } from '@app/core/services/util/notification.service';
 import { ContentPrioritization } from '@app/core/models/content-prioritization';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { ContentParticipantBaseComponent } from '@app/participant/content/content-participant-base.component';
 import { FormService } from '@app/core/services/util/form.service';
 import { take } from 'rxjs';
 import { ContentPrioritizationAnswerComponent } from '@app/standalone/content-answers/content-prioritization-answer/content-prioritization-answer.component';
+import { AnswerResultType } from '@app/core/models/answer-result';
 
 @Component({
   selector: 'app-content-prioritization-participant',
@@ -25,7 +26,6 @@ import { ContentPrioritizationAnswerComponent } from '@app/standalone/content-an
 export class ContentPrioritizationParticipantComponent extends ContentParticipantBaseComponent {
   @Input({ required: true }) content!: ContentPrioritization;
   @Input() answer?: PrioritizationAnswer;
-  @Output() answerChanged = new EventEmitter<PrioritizationAnswer>();
 
   isLoading = true;
   hasAbstained = false;
@@ -122,7 +122,7 @@ export class ContentPrioritizationParticipantComponent extends ContentParticipan
                 AdvancedSnackBarTypes.SUCCESS
               );
             });
-          this.sendStatusToParent(answer);
+          this.sendStatusToParent(AnswerResultType.NEUTRAL);
         },
         () => {
           this.enableForm();
@@ -138,12 +138,14 @@ export class ContentPrioritizationParticipantComponent extends ContentParticipan
     );
     this.answerService
       .addAnswerPrioritization(this.content.roomId, answer)
-      .subscribe((answer) => {
-        this.hasAbstained = true;
-        this.sendStatusToParent(answer);
-      }),
-      () => {
-        this.enableForm();
-      };
+      .subscribe(
+        () => {
+          this.hasAbstained = true;
+          this.sendStatusToParent(AnswerResultType.ABSTAINED);
+        },
+        () => {
+          this.enableForm();
+        }
+      );
   }
 }

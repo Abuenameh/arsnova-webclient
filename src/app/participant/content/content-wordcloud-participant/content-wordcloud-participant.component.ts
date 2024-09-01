@@ -1,12 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import {
   AdvancedSnackBarTypes,
   NotificationService,
 } from '@app/core/services/util/notification.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { ContentType } from '@app/core/models/content-type.enum';
-import { EventService } from '@app/core/services/util/event.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GlobalStorageService } from '@app/core/services/util/global-storage.service';
 import { ContentParticipantBaseComponent } from '@app/participant/content/content-participant-base.component';
@@ -15,6 +14,7 @@ import { ContentWordcloud } from '@app/core/models/content-wordcloud';
 import { FormService } from '@app/core/services/util/form.service';
 import { take } from 'rxjs';
 import { ContentWordcloudAnswerComponent } from '@app/standalone/content-answers/content-wordcloud-answer/content-wordcloud-answer.component';
+import { AnswerResultType } from '@app/core/models/answer-result';
 
 @Component({
   selector: 'app-content-wordcloud-participant',
@@ -25,9 +25,6 @@ import { ContentWordcloudAnswerComponent } from '@app/standalone/content-answers
 export class ContentWordcloudParticipantComponent extends ContentParticipantBaseComponent {
   @Input({ required: true }) content!: ContentWordcloud;
   @Input() answer?: MultipleTextsAnswer;
-  @Output() answerChanged = new EventEmitter<MultipleTextsAnswer>();
-
-  givenAnswer?: MultipleTextsAnswer;
 
   words: string[] = [];
 
@@ -35,7 +32,6 @@ export class ContentWordcloudParticipantComponent extends ContentParticipantBase
     protected answerService: ContentAnswerService,
     protected notificationService: NotificationService,
     protected translateService: TranslocoService,
-    public eventService: EventService,
     protected route: ActivatedRoute,
     protected globalStorageService: GlobalStorageService,
     protected router: Router,
@@ -53,7 +49,6 @@ export class ContentWordcloudParticipantComponent extends ContentParticipantBase
 
   init() {
     if (this.answer) {
-      this.givenAnswer = this.answer;
       this.words = this.answer.texts;
     } else {
       this.words = new Array<string>(this.content.maxAnswers).fill('');
@@ -82,10 +77,9 @@ export class ContentWordcloudParticipantComponent extends ContentParticipantBase
       ContentType.WORDCLOUD
     );
     answer.texts = words;
-    this.answerService
-      .addAnswer(this.content.roomId, answer)
-      .subscribe((answer) => {
-        this.givenAnswer = answer;
+    this.answerService.addAnswer(this.content.roomId, answer).subscribe(
+      (answer) => {
+        this.answer = answer;
         this.translateService
           .selectTranslate('participant.answer.sent')
           .pipe(take(1))
@@ -95,11 +89,12 @@ export class ContentWordcloudParticipantComponent extends ContentParticipantBase
               AdvancedSnackBarTypes.SUCCESS
             );
           });
-        this.sendStatusToParent(answer);
-      }),
+        this.sendStatusToParent(AnswerResultType.NEUTRAL);
+      },
       () => {
         this.enableForm();
-      };
+      }
+    );
   }
 
   abstain() {
@@ -109,14 +104,14 @@ export class ContentWordcloudParticipantComponent extends ContentParticipantBase
       this.content.state.round,
       ContentType.WORDCLOUD
     );
-    this.answerService
-      .addAnswer(this.content.roomId, answer)
-      .subscribe((answer) => {
-        this.givenAnswer = answer;
-        this.sendStatusToParent(answer);
-      }),
+    this.answerService.addAnswer(this.content.roomId, answer).subscribe(
+      (answer) => {
+        this.answer = answer;
+        this.sendStatusToParent(AnswerResultType.ABSTAINED);
+      },
       () => {
         this.enableForm();
-      };
+      }
+    );
   }
 }

@@ -11,17 +11,20 @@ export class DetailedRadioGroup {
   title: string;
   description: string;
   icon?: string;
+  color?: string;
 
   constructor(
     value: string,
     title: string,
     description: string,
-    icon?: string
+    icon?: string,
+    color?: string
   ) {
     this.value = value;
     this.title = title;
     this.description = description;
     this.icon = icon;
+    this.color = color;
   }
 }
 
@@ -42,11 +45,12 @@ export class DetailedRadioGroup {
 })
 export class DetailRadioGroupComponent implements OnInit {
   @Input({ required: true }) items!: DetailedRadioGroup[];
+  @Input() selectedItemValue?: string;
   @Output() itemValueChanged = new EventEmitter<string>();
 
-  selectedItemValue?: string;
-
   ngOnInit(): void {
-    this.selectedItemValue = this.items[0].value;
+    if (!this.selectedItemValue) {
+      this.selectedItemValue = this.items[0].value;
+    }
   }
 }

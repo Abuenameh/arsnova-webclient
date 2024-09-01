@@ -19,10 +19,9 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ContentService } from '@app/core/services/http/content.service';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
-import { EventService } from '@app/core/services/util/event.service';
 import { PresentationService } from '@app/core/services/util/presentation.service';
 import { takeUntil } from 'rxjs';
 import { StatisticContentBaseComponent } from '@app/standalone/statistic-content/statistic-content-base';
@@ -66,11 +65,11 @@ export class StatisticNumericComponent
   @Input({ required: true }) content!: ContentNumeric;
   @Input({ required: true }) visualizationUnitChanged!: EventEmitter<boolean>;
   @Input() directShow = false;
+  @Input() showCorrect = false;
 
   chart?: Chart;
   chartId = '';
   colors: Array<string[]> = [[], []];
-  colorLabel = false;
   data: Array<AnswerGroup[]> = [[], []];
   colorStrings = {
     onBackground: '',
@@ -95,10 +94,9 @@ export class StatisticNumericComponent
     protected contentService: ContentService,
     protected translateService: TranslocoService,
     protected themeService: ThemeService,
-    protected eventService: EventService,
     protected presentationService: PresentationService
   ) {
-    super(contentService, eventService, translateService);
+    super(contentService, translateService);
   }
 
   ngOnDestroy() {
@@ -135,7 +133,6 @@ export class StatisticNumericComponent
   }
 
   toggleAnswers(visible?: boolean): boolean {
-    this.colorLabel = false;
     this.answersVisible = visible ?? !this.answersVisible;
     if (this.answersVisible) {
       this.updateChart();
@@ -340,9 +337,6 @@ export class StatisticNumericComponent
                 context.dataset.data as number[]
               );
             },
-            display: (context) => {
-              return (context.dataset.data[context.dataIndex] as number) > 0;
-            },
             color: this.colorStrings.onBackground,
             anchor: 'end',
             align: 'end',
@@ -375,7 +369,7 @@ export class StatisticNumericComponent
   }
 
   toggleCorrect() {
-    this.colorLabel = !this.colorLabel;
+    this.showCorrect = !this.showCorrect;
   }
 
   private getColors() {

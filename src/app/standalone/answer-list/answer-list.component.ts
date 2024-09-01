@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TextStatistic } from '@app/core/models/text-statistic';
 import { UserRole } from '@app/core/models/user-roles.enum';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe, provideTranslocoScope } from '@jsverse/transloco';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIconButton } from '@angular/material/button';
@@ -22,11 +22,14 @@ import { NgClass } from '@angular/common';
     MatIcon,
     TranslocoPipe,
   ],
+  providers: [provideTranslocoScope('creator')],
 })
 export class AnswerListComponent implements OnInit {
   @Input({ required: true }) answers!: TextStatistic[];
   @Input() banMode = true;
   @Input() isPresentation = false;
+  @Input() showCorrect = false;
+  @Input() correctAnswers?: string[];
   @Output() deleteClicked = new EventEmitter<TextStatistic>();
 
   isModerator = false;
@@ -47,5 +50,13 @@ export class AnswerListComponent implements OnInit {
 
   deleteAnswer(answer: TextStatistic): void {
     this.deleteClicked.emit(answer);
+  }
+
+  isCorrect(answer: string): boolean {
+    return !!this.correctAnswers && this.correctAnswers.includes(answer);
+  }
+
+  hasCorrectAnswers(): boolean {
+    return !!this.correctAnswers;
   }
 }

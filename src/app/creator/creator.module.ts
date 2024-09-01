@@ -3,7 +3,7 @@ import { CreatorRoutingModule } from './creator-routing.module';
 import { extensions } from './creator.extensions';
 import { CoreModule } from '@app/core/core.module';
 import { RoomComponent } from './settings/room/room.component';
-import { TranslocoModule, provideTranslocoScope } from '@ngneat/transloco';
+import { TranslocoModule, provideTranslocoScope } from '@jsverse/transloco';
 import { AccessComponent } from './settings/access/access.component';
 import { CommentSettingsComponent } from './settings/comment-settings/comment-settings.component';
 import { ContentGroupCreationComponent } from './_dialogs/content-group-creation/content-group-creation.component';
@@ -31,6 +31,7 @@ import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loa
 import { AnnouncementComponent } from '@app/standalone/announcement/announcement.component';
 import { NavBarComponent } from '@app/standalone/nav-bar/nav-bar.component';
 import { DetailRadioGroupComponent } from '@app/standalone/detail-radio-group/detail-radio-group.component';
+import { LanguageContextDirective } from '@app/core/directives/language-context.directive';
 
 @NgModule({
   imports: [
@@ -56,6 +57,7 @@ import { DetailRadioGroupComponent } from '@app/standalone/detail-radio-group/de
     AnnouncementComponent,
     NavBarComponent,
     DetailRadioGroupComponent,
+    LanguageContextDirective,
   ],
   declarations: [
     RoomComponent,

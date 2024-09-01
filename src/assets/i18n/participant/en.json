@@ -39,7 +39,9 @@
     "please-assign-valid-points": "Please assign between 0 and {{points}} Points per answer.",
     "please-select-number-from-range": "Please select a number from the range.",
     "not-answered-in-time": "You didn't answer in time.",
-    "answered-in-time": "You answered in {{duration}} seconds."
+    "answered-in-time": "You answered in {{duration}} seconds.",
+    "go-to-overview": "Go to overview",
+    "next-content": "Next content"
   },
   "content": {
     "thanks-for-participation": "Thanks for your participation!",
@@ -59,7 +61,8 @@
     "new-round-started": "A new round has been started.",
     "answers-reset": "Answers have been reset.",
     "attribution-info": "This content is based on a template by {{attribution}} which is licensed under {{license}}.",
-    "you-are-at-position": "You are in {{ position }} place!",
+    "you-are-at-position-congrats": "You are in {{ position }} place!",
+    "you-are-at-position": "You are in {{ position }} place.",
     "contents": "Contents",
     "leaderboard-name": "Name",
     "leaderboard-points": "Points",

@@ -62,7 +62,7 @@
       @if (comment.correct === 1) {
         <button
           mat-icon-button
-          [disabled]="!isEditor"
+          [disabled]="!isEditor || isSimpleView"
           (click)="markCorrect(1)"
           [matTooltip]="'creator.comment-page.mark-not-correct' | transloco"
         >
@@ -72,7 +72,7 @@
       @if (comment.correct === 2) {
         <button
           mat-icon-button
-          [disabled]="!isEditor"
+          [disabled]="!isEditor || isSimpleView"
           (click)="markCorrect(2)"
           [matTooltip]="'creator.comment-page.mark-not-wrong' | transloco"
         >
@@ -82,7 +82,7 @@
       @if (comment.favorite) {
         <button
           mat-icon-button
-          [disabled]="!isEditor"
+          [disabled]="!isEditor || isSimpleView"
           (click)="setFavorite()"
           [matTooltip]="'creator.comment-page.mark-not-favorite' | transloco"
         >
@@ -188,11 +188,13 @@
       </mat-menu>
     </div>
     <div fxLayout="row" fxLayoutAlign="start">
-      <div fxLayout="column">
+      <div fxLayout="column" style="width: 100%">
         <div
           class="body click"
           fxLayout="column"
           fxLayoutAlign="start"
+          appLangContext
+          appDirContext
           (click)="openPresentDialog()"
         >
           <span aria-hidden="true">{{ comment.body.trim() }}</span>

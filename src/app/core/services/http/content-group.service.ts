@@ -9,7 +9,7 @@ import {
   GlobalStorageService,
   STORAGE_KEYS,
 } from '@app/core/services/util/global-storage.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { NotificationService } from '@app/core/services/util/notification.service';
 import { RoomStatsService } from './room-stats.service';
 import { ContentGroupStatistics } from '@app/core/models/content-group-statistics';
@@ -49,8 +49,8 @@ interface AnswerStatisticsSummary {
 export class ContentGroupService extends AbstractEntityService<ContentGroup> {
   typeIcons: Map<GroupType, string> = new Map<GroupType, string>([
     [GroupType.MIXED, 'dashboard'],
-    [GroupType.QUIZ, 'emoji_events'],
-    [GroupType.SURVEY, 'bar_chart'],
+    [GroupType.QUIZ, 'sports_esports'],
+    [GroupType.SURVEY, 'tune'],
     [GroupType.FLASHCARDS, 'school'],
   ]);
 
@@ -366,7 +366,7 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
         return [
           ContentType.CHOICE,
           ContentType.BINARY,
-          ContentType.TEXT,
+          ContentType.SHORT_ANSWER,
           ContentType.SORT,
           ContentType.NUMERIC,
           ContentType.SLIDE,
@@ -416,6 +416,7 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
       ContentType.BINARY,
       ContentType.NUMERIC,
       ContentType.SORT,
+      ContentType.SHORT_ANSWER,
       ContentType.QTI,
     ];
     if (!scorableFormats.includes(content.format)) {
@@ -463,7 +464,9 @@ export class ContentGroupService extends AbstractEntityService<ContentGroup> {
       );
       if (contentSummaries.length > 0) {
         count = this.calculateStatsCount(contentSummaries);
-        correct = this.calculateCorrectStats(contentSummaries);
+        if (this.isContentScorable(content)) {
+          correct = this.calculateCorrectStats(contentSummaries);
+        }
       }
       if (correct) {
         correct = (correct / count) * 100;

@@ -405,9 +405,10 @@
     "group-type-quiz": "Quiz",
     "group-type-survey": "Survey",
     "group-type-flashcards": "Flashcards",
-    "content-count": "{{count}} Contents",
+    "content-count": "{{count}} contents",
     "answer-fast-to-get-more-points": "Answer quickly to get more points",
-    "answer-correct-to-get-points": "Answer correctly to get points"
+    "answer-correct-to-get-points": "Answer correctly to get points",
+    "contents-will-be-published-gradually": "The contents will be released gradually"
   },
   "answer": {
     "word": "Keyword",
@@ -418,7 +419,7 @@
     "your-answer": "Your answer",
     "select-a-number-between": "Select a number between {{min}} and {{max}}",
     "correct-answer-is": "The correct answer is",
-    "correct-answers-are": "The correct answers are",
+    "correct-answers-are": "Correct answers are:",
     "have-answered-correctly": "have answered correctly"
   },
   "survey": {
@@ -610,7 +611,8 @@
     "time-is-up": "Time is up"
   },
   "general": {
-    "a11y-remove-filter": "Remove filter"
+    "a11y-remove-filter": "Remove filter",
+    "not-specified": "Not specified"
   },
   "ordinal": {
     "one": "st",

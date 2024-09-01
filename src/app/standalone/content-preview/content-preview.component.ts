@@ -7,7 +7,7 @@ import { AnswerOption } from '@app/core/models/answer-option';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import { ContentScale } from '@app/core/models/content-scale';
 import { LikertScaleService } from '@app/core/services/util/likert-scale.service';
-import { TranslocoService, provideTranslocoScope } from '@ngneat/transloco';
+import { TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
 import { forkJoin, Observable, take } from 'rxjs';
 import { SelectableAnswer } from '@app/core/models/selectable-answer';
 import { ContentWordcloud } from '@app/core/models/content-wordcloud';
@@ -26,6 +26,9 @@ import { ContentNumericAnswerComponent } from '@app/standalone/content-answers/c
 import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/content-qti-answer/content-qti-answer.component';
 import { ContentNumeric } from '@app/core/models/content-numeric';
 import { ContentQti } from '@app/core/models/content-qti';
+import { LanguageContextDirective } from '@app/core/directives/language-context.directive';
+import { LanguageDirectionPipe } from '@app/core/pipes/language-direction.pipe';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-content-preview',
@@ -41,6 +44,8 @@ import { ContentQti } from '@app/core/models/content-qti';
     ContentWordcloudAnswerComponent,
     ContentNumericAnswerComponent,
     ContentQtiAnswerComponent,
+    LanguageContextDirective,
+    LanguageDirectionPipe,
   ],
   providers: [provideTranslocoScope('creator')],
   templateUrl: './content-preview.component.html',
@@ -62,12 +67,16 @@ export class ContentPreviewComponent implements OnInit {
   assignablePoints?: number;
   numericContent?: ContentNumeric;
   qtiContent?: ContentQti;
+  language?: string;
 
   constructor(
     private answerService: ContentAnswerService,
     private likertScaleService: LikertScaleService,
-    private translateService: TranslocoService
-  ) {}
+    private translateService: TranslocoService,
+    route: ActivatedRoute
+  ) {
+    this.language = route.snapshot.data.room?.language;
+  }
 
   ngOnInit(): void {
     const format = this.content.format;

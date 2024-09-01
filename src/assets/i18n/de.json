@@ -401,13 +401,14 @@
     "leaderboard": "Rangliste",
     "no-leaderboard-entries": "Noch keine Ergebnisse.",
     "points": "Punkte",
-    "group-type-mixed": "Mix",
+    "group-type-mixed": "Gemischt",
     "group-type-quiz": "Quiz",
     "group-type-survey": "Umfrage",
     "group-type-flashcards": "Lernkarten",
     "content-count": "{{count}} Inhalte",
     "answer-fast-to-get-more-points": "Antworte schnell, um mehr Punkte zu bekommen",
-    "answer-correct-to-get-points": "Antworte richtig, um Punkte zu bekommen"
+    "answer-correct-to-get-points": "Antworte richtig, um Punkte zu bekommen",
+    "contents-will-be-published-gradually": "Die Inhalte werden nach und nach freigegeben"
   },
   "answer": {
     "word": "Schlagwort",
@@ -418,6 +419,7 @@
     "your-answer": "Deine Antwort",
     "select-a-number-between": "Wähle eine Zahl zwischen {{min}} und {{max}}",
     "correct-answer-is": "Die richtige Antwort ist",
+    "correct-answers-are": "Richtige Antworten sind:",
     "have-answered-correctly": "haben richtig geantwortet"
   },
   "survey": {
@@ -609,7 +611,8 @@
     "time-is-up": "Die Zeit ist abgelaufen"
   },
   "general": {
-    "a11y-remove-filter": "Filter entfernen"
+    "a11y-remove-filter": "Filter entfernen",
+    "not-specified": "Nicht festegelegt"
   },
   "ordinal": {
     "one": "",

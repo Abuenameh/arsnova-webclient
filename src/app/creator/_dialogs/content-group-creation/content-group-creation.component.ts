@@ -8,7 +8,7 @@ import {
   AdvancedSnackBarTypes,
   NotificationService,
 } from '@app/core/services/util/notification.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { ContentGroupService } from '@app/core/services/http/content-group.service';
 import {
   ContentGroup,
@@ -22,6 +22,7 @@ import { DetailedRadioGroup } from '@app/standalone/detail-radio-group/detail-ra
 
 interface DialogData {
   roomId?: string;
+  type?: GroupType;
 }
 
 @Component({
@@ -50,21 +51,24 @@ export class ContentGroupCreationComponent extends FormComponent {
   ) {
     super(formService);
     Object.values(GroupType).forEach((type) => {
+      const typeString = type.toLowerCase();
       const title = this.translateService.translate(
-        'content.group-type-' + type.toLowerCase()
+        'content.group-type-' + typeString
       );
       const description = this.translateService.translate(
-        'creator.content.group-type-description-' + type.toLowerCase()
+        'creator.content.group-type-description-' + typeString
       );
       this.radioItems.push(
         new DetailedRadioGroup(
           type,
           title,
           description,
-          this.contentGroupService.getTypeIcons().get(type)
+          this.contentGroupService.getTypeIcons().get(type),
+          `var(--${typeString})`
         )
       );
     });
+    this.selectedType = this.data.type ?? GroupType.MIXED;
   }
 
   changeType(type: string) {

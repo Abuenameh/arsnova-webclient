@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CoreModule } from '@app/core/core.module';
 import { ChoiceAnswer } from '@app/core/models/choice-answer';
 import { SelectableAnswer } from '@app/core/models/selectable-answer';
+import { LanguageService } from '@app/core/services/util/language.service';
 import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
 
 @Component({
@@ -25,6 +27,14 @@ export class ContentChoiceAnswerComponent {
   @Input() dynamicRendering = false;
   @Output() answerIndexSelected = new EventEmitter<number>();
 
+  language: string;
+
+  constructor(route: ActivatedRoute, languageService: LanguageService) {
+    this.language = languageService.ensureValidLang(
+      route.snapshot.data.room?.language
+    );
+  }
+
   selectSingleAnswer(index: number) {
     this.answerIndexSelected.emit(index);
   }
@@ -43,10 +53,7 @@ export class ContentChoiceAnswerComponent {
   }
 
   isCorrectOrSelectedOption(index: number): boolean {
-    return (
-      this.isAnswerOptionSelected(index) ||
-      this.correctOptionIndexes.includes(index)
-    );
+    return this.isAnswerOptionSelected(index);
   }
 
   checkOption(index: number, checkCorrect: boolean) {

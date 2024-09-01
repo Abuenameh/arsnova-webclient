@@ -40,32 +40,28 @@
                       <div
                         fxLayout="row"
                         fxLayoutAlign="start center"
-                        fxLayoutGap="10px"
+                        fxLayoutGap="12px"
                         class="primary"
                       >
-                        <mat-icon class="format-button-icon">{{
-                          selectedFormat.icon
-                        }}</mat-icon>
+                        <mat-icon>{{ selectedFormat?.icon }}</mat-icon>
                         <span>{{
-                          'creator.content.format-' + selectedFormat.name
+                          'creator.content.format-' + selectedFormat?.name
                             | transloco
                         }}</span>
                       </div>
                     </mat-select-trigger>
                     @for (format of formats; track format) {
                       <mat-option [value]="format" class="higher-option">
-                        <div fxLayout="row">
+                        <div
+                          fxLayout="row"
+                          fxLayoutAlign="start center"
+                          fxLayoutGap="12px"
+                        >
                           <mat-icon class="format-icon">{{
                             format.icon
                           }}</mat-icon>
-                          <div fxLayout="column" fxLayoutAlign="center">
-                            <span
-                              [attr.aria-label]="
-                                'creator.content.a11y-format-' + format.name
-                                  | transloco
-                              "
-                              class="format-name"
-                            >
+                          <div fxLayout="column" fxLayoutGap="2px">
+                            <span class="format-name">
                               {{
                                 'creator.content.format-' + format.name
                                   | transloco
@@ -93,7 +89,7 @@
                 class="input-block no-field-hint"
               >
                 <mat-label>{{
-                  (selectedFormat.name !== 'slide'
+                  (selectedFormat?.name !== 'slide'
                     ? 'creator.content.body'
                     : 'creator.content.body-neutral'
                   ) | transloco
@@ -114,11 +110,12 @@
                   matInput
                   cdkTextareaAutosize
                   maxlength="{{
-                    selectedFormat.name !== 'slide' ? 1000 : 2000
+                    selectedFormat?.name !== 'slide' ? 1000 : 2000
                   }}"
                   name="questionInput"
                   appHotkey="1"
                   [appHotkeyTitle]="'creator.content.body' | transloco"
+                  dir="auto"
                 ></textarea>
               </mat-form-field>
               @if (textContainsImage) {
@@ -135,7 +132,10 @@
               }
               <div class="form-spacer"></div>
             </form>
-            @if (!['slide', 'flashcard'].includes(selectedFormat.name)) {
+            @if (
+              selectedFormat &&
+              !['slide', 'flashcard'].includes(selectedFormat.name)
+            ) {
               <div
                 fxLayout="row"
                 fxLayout.xs="column-reverse"
@@ -184,7 +184,7 @@
                 </div>
               </div>
             }
-            @if (!isLoading) {
+            @if (!isLoading && selectedFormat) {
               <div>
                 @switch (selectedFormat.type) {
                   @case (ContentType.CHOICE) {
@@ -258,6 +258,14 @@
                       [isQuiz]="contentGroup.groupType === GroupType.QUIZ"
                     >
                     </app-numeric-content-form>
+                  }
+                  @case (ContentType.SHORT_ANSWER) {
+                    <app-short-answer-content-form
+                      [content]="content"
+                      [isAnswered]="isAnswered"
+                      [isEditMode]="isEditMode"
+                    >
+                    </app-short-answer-content-form>
                   }
                   @case (ContentType.QTI) {
                     <app-qti-content-form

@@ -3,11 +3,10 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import { ContentService } from '@app/core/services/http/content.service';
 import { Content } from '@app/core/models/content';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
-import { EventService } from '@app/core/services/util/event.service';
 import { TextAnswer } from '@app/core/models/text-answer';
 import { UserSettings } from '@app/core/models/user-settings';
 import { ChartTypeRegistry, TooltipItem } from 'chart.js';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 
 export const ABSTENTION_SIGN = '–';
 
@@ -30,7 +29,6 @@ export abstract class StatisticContentBaseComponent implements OnInit {
 
   protected constructor(
     protected contentService: ContentService,
-    protected eventService: EventService,
     protected translateService: TranslocoService
   ) {}
 
@@ -85,12 +83,12 @@ export abstract class StatisticContentBaseComponent implements OnInit {
     this.updateCounterEvent.emit(this.answerCount);
   }
 
-  getDataLabel(value: number, roundData: number[]): string {
+  getDataLabel(value: number, roundData: number[], count?: number): string {
     let label: string;
+    const total = count ?? this.getSum(roundData);
     if (this.settings.contentVisualizationUnitPercent) {
-      label = this.getLabelWithPercentageSign(
-        ((value / this.getSum(roundData)) * 100).toFixed(0)
-      );
+      value = total ? (value / total) * 100 : 0;
+      label = this.getLabelWithPercentageSign(value.toFixed(0));
     } else {
       label = value.toString();
     }

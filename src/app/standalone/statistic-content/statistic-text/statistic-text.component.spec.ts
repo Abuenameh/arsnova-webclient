@@ -1,10 +1,8 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { StatisticTextComponent } from './statistic-text.component';
-import { EventService } from '@app/core/services/util/event.service';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ThemeService } from '@app/core/theme/theme.service';
 import {
-  MockEventService,
   MockNotificationService,
   MockThemeService,
 } from '@testing/test-helpers';
@@ -30,7 +28,8 @@ describe('StatisticTextComponent', () => {
   ]);
   const roundStatistics = new RoundStatistics(1, [], [], 0, 0);
   const stats = new AnswerStatistics();
-  (stats.contentId = '1234'), (stats.roundStatistics = [roundStatistics]);
+  stats.contentId = '1234';
+  stats.roundStatistics = [roundStatistics];
   const body = {
     payload: {
       id: '1234',
@@ -58,10 +57,6 @@ describe('StatisticTextComponent', () => {
     TestBed.configureTestingModule({
       imports: [getTranslocoModule(), StatisticTextComponent],
       providers: [
-        {
-          provide: EventService,
-          useClass: MockEventService,
-        },
         {
           provide: ContentService,
           useValue: mockContentService,

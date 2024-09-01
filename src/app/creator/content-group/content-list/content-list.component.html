@@ -85,6 +85,10 @@
                       [ngClass]="{
                         'locked-content': !isPublished(i),
                       }"
+                      [matTooltip]="
+                        'creator.content.format-' + content.format.toLowerCase()
+                          | transloco
+                      "
                       >{{ iconList.get(content.format) }}</mat-icon
                     >
                     @if (contentStats.get(content.id)) {
@@ -123,7 +127,7 @@
                         }
                       </div>
                     }
-                    @if (endDate && isStarted(i)) {
+                    @if (isLiveMode() && endDate && isStarted(i)) {
                       <div
                         fxLayout="row"
                         fxLayoutGap="4px"
@@ -148,7 +152,7 @@
                             <span>{{
                               'creator.content.live' | transloco
                             }}</span>
-                            <div class="live-circle"></div>
+                            <app-pulsating-circle></app-pulsating-circle>
                           </div>
                         }
                       </div>
@@ -405,7 +409,12 @@
                         }}</span>
                       </button>
                       <mat-divider></mat-divider>
-                      @if (content.format === ContentType.WORDCLOUD) {
+                      @if (
+                        [
+                          ContentType.WORDCLOUD,
+                          ContentType.SHORT_ANSWER,
+                        ].includes(content.format)
+                      ) {
                         <button
                           mat-menu-item
                           (click)="resetBannedAnswers(content.id)"
@@ -417,12 +426,23 @@
                         </button>
                       }
                       @if (contentGroup.groupType !== GroupType.FLASHCARDS) {
-                        <button mat-menu-item (click)="deleteAnswers(content)">
-                          <mat-icon>clear_all</mat-icon>
-                          <span>{{
-                            'creator.content.delete-answers' | transloco
-                          }}</span>
-                        </button>
+                        <div
+                          [matTooltip]="
+                            'creator.content.stop-content-to-delete-answers'
+                              | transloco
+                          "
+                        >
+                          <button
+                            mat-menu-item
+                            (click)="deleteAnswers(content)"
+                            [disabled]="isStarted(i)"
+                          >
+                            <mat-icon>clear_all</mat-icon>
+                            <span>{{
+                              'creator.content.delete-answers' | transloco
+                            }}</span>
+                          </button>
+                        </div>
                       }
                       @if (hasFormatRounds(content.format) && !isLiveMode()) {
                         <div

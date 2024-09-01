@@ -14,6 +14,7 @@ import { LoadingButtonComponent } from '@app/standalone/loading-button/loading-b
 import { SettingsSlideToggleComponent } from '@app/standalone/settings-slide-toggle/settings-slide-toggle.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
+import { provideTranslocoScope } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-content-group-settings',
@@ -24,6 +25,7 @@ import { ContentPublishService } from '@app/core/services/util/content-publish.s
     LoadingButtonComponent,
     MatButtonToggleModule,
   ],
+  providers: [provideTranslocoScope('creator')],
   templateUrl: './content-group-settings.component.html',
   styleUrl: './content-group-settings.component.scss',
 })
@@ -40,7 +42,11 @@ export class ContentGroupSettingsComponent
     protected formService: FormService,
     private dialogRef: MatDialogRef<ContentGroupSettingsComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: { contentGroup: ContentGroup; groupNames: string[] },
+    public data: {
+      contentGroup: ContentGroup;
+      groupNames: string[];
+      alreadyAnswered: boolean;
+    },
     private contentGroupService: ContentGroupService,
     private contentPublishService: ContentPublishService
   ) {

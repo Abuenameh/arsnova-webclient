@@ -1,14 +1,15 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { NotificationService } from '@app/core/services/util/notification.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   GlobalStorageService,
   STORAGE_KEYS,
 } from '@app/core/services/util/global-storage.service';
-import { Answer } from '@app/core/models/answer';
 import { FormService } from '@app/core/services/util/form.service';
 import { FormComponent } from '@app/standalone/form/form.component';
+import { AnswerResultType } from '@app/core/models/answer-result';
+import { Answer } from '@app/core/models/answer';
 
 @Component({
   template: '',
@@ -17,9 +18,13 @@ export abstract class ContentParticipantBaseComponent
   extends FormComponent
   implements OnInit
 {
-  @Output() answerChanged = new EventEmitter();
+  @Output() answerChanged = new EventEmitter<{
+    answer?: Answer;
+    answerResult: AnswerResultType;
+  }>();
   @Input() isDisabled = false;
   @Input({ required: true }) sendEvent!: EventEmitter<string>;
+  @Input() answer?: Answer;
 
   isLoading = true;
   shortId: string;
@@ -58,8 +63,11 @@ export abstract class ContentParticipantBaseComponent
     // Implementation in extended classes
   }
 
-  sendStatusToParent(answer: Answer) {
-    this.answerChanged.emit(answer);
+  sendStatusToParent(answerResult: AnswerResultType) {
+    this.answerChanged.emit({
+      answer: this.answer,
+      answerResult: answerResult,
+    });
   }
 
   submitAnswer() {

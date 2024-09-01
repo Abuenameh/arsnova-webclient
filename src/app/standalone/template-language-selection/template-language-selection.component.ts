@@ -4,7 +4,7 @@ import { IsoLanguage } from '@app/core/models/iso-language';
 import { FormService } from '@app/core/services/util/form.service';
 import { LanguageService } from '@app/core/services/util/language.service';
 import { FormComponent } from '@app/standalone/form/form.component';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-template-language-selection',
@@ -19,6 +19,7 @@ export class TemplateLanguageSelectionComponent
   @Output() selectedLangChanged = new EventEmitter<string>();
   @Input() smaller = false;
   @Input() defaultLang?: string;
+  @Input() allowNoneSelection = false;
   selectedLang?: IsoLanguage;
   langs: IsoLanguage[] = [];
 
@@ -37,12 +38,16 @@ export class TemplateLanguageSelectionComponent
       );
       this.selectedLang = this.langs.find(
         (l) =>
-          l.code === (this.defaultLang || this.translateService.getActiveLang())
+          l.code ===
+          (this.defaultLang ||
+            (this.allowNoneSelection
+              ? undefined
+              : this.translateService.getActiveLang()))
       );
     });
   }
 
-  updateLang(lang: IsoLanguage): void {
+  updateLang(lang?: IsoLanguage): void {
     this.selectedLang = lang;
     this.selectedLangChanged.emit(this.selectedLang?.code);
   }

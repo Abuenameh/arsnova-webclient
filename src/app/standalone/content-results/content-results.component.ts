@@ -17,11 +17,10 @@ import { AnnounceService } from '@app/core/services/util/announce.service';
 import { StatisticWordcloudComponent } from '@app/standalone/statistic-content/statistic-wordcloud/statistic-wordcloud.component';
 import { StatisticScaleComponent } from '@app/standalone/statistic-content/statistic-scale/statistic-scale.component';
 import { HotkeyAction } from '@app/core/directives/hotkey.directive';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UserRole } from '@app/core/models/user-roles.enum';
 import { UserSettings } from '@app/core/models/user-settings';
 import { StatisticPrioritizationComponent } from '@app/standalone/statistic-content/statistic-prioritization/statistic-prioritization.component';
-import { RemoteService } from '@app/core/services/util/remote.service';
 import { Content } from '@app/core/models/content';
 import { ContentFlashcard } from '@app/core/models/content-flashcard';
 import { ContentPrioritization } from '@app/core/models/content-prioritization';
@@ -32,7 +31,7 @@ import { ContentNumeric } from '@app/core/models/content-numeric';
 import { ContentQti } from '@app/core/models/content-qti';
 import { StatisticQtiComponent } from '@app/standalone/statistic-content/statistic-qti/statistic-qti.component';
 import { StatisticNumericComponent } from '@app/standalone/statistic-content/statistic-numeric/statistic-numeric.component';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -44,6 +43,8 @@ import { AnswerCountComponent } from '@app/standalone/answer-count/answer-count.
 import { MultipleRoundSelectionComponent } from '@app/standalone/multiple-round-selection/multiple-round-selection.component';
 import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-text.component';
 import { ExtensionPointModule } from '@projects/extension-point/src/public-api';
+import { LanguageContextDirective } from '@app/core/directives/language-context.directive';
+import { StatisticShortAnswerComponent } from '@app/standalone/statistic-content/statistic-short-answer/statistic-short-answer.component';
 
 @Component({
   selector: 'app-content-results',
@@ -68,9 +69,12 @@ import { ExtensionPointModule } from '@projects/extension-point/src/public-api';
     StatisticWordcloudComponent,
     StatisticPrioritizationComponent,
     StatisticNumericComponent,
+    StatisticShortAnswerComponent,
     StatisticQtiComponent,
     MatDivider,
     TranslocoPipe,
+    LanguageContextDirective,
+    RouterLink,
   ],
 })
 export class ContentResultsComponent implements OnInit, OnDestroy {
@@ -86,6 +90,8 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
   prioritizationStatistic!: StatisticPrioritizationComponent;
   @ViewChild(StatisticNumericComponent)
   numericStatistic!: StatisticNumericComponent;
+  @ViewChild(StatisticShortAnswerComponent)
+  shortAnswerStatistic!: StatisticShortAnswerComponent;
   @ViewChild(StatisticQtiComponent)
   qtiStatistic!: StatisticQtiComponent;
 
@@ -95,7 +101,7 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
   @Input() directShow = false;
   @Input() active = false;
   @Input() index = 0;
-  @Input() correctOptionsPublished = false;
+  @Input() showCorrect = false;
   @Input() isPresentation = false;
   @Input() indexChanged?: EventEmitter<number>;
   @Input() isStandalone = true;
@@ -130,7 +136,6 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
   constructor(
     private announceService: AnnounceService,
     private route: ActivatedRoute,
-    private remoteService: RemoteService,
     private presentationService: PresentationService,
     private contentService: ContentService
   ) {}
@@ -160,12 +165,7 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
       this.indexChanged.subscribe(() => {
         this.updateCounter(this.answerCount);
         this.broadcastRoundState();
-        if (
-          this.settings.showContentResultsDirectly &&
-          this.active &&
-          !this.answersVisible &&
-          !this.content.duration
-        ) {
+        if (this.directShow && this.active && !this.answersVisible) {
           this.toggleAnswers();
         }
       });
@@ -180,24 +180,6 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
             this.changeRound(roundData.round);
           }
         });
-    }
-    if (this.isPresentation) {
-      this.remoteService.getUiState().subscribe((state) => {
-        if (this.content.id === state.contentId) {
-          if (state.resultsVisible !== this.answersVisible) {
-            this.toggleAnswers(false);
-          }
-          if (state.correctAnswersVisible !== this.correctVisible) {
-            const timeout = state.timeout ? 500 : 0;
-            setTimeout(() => {
-              this.toggleCorrect(false);
-            }, timeout);
-          }
-        }
-      });
-      if (this.active) {
-        this.sendUiState(false, false);
-      }
     }
     this.allowingUnitChange = [
       ContentType.BINARY,
@@ -238,27 +220,15 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
     }
   }
 
-  sendUiState(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    answersVisible = this.answersVisible,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    correctVisible = this.correctVisible
-  ) {
-    // TODO: Send UI state for remote
-  }
-
-  toggleAnswers(sendState = true) {
+  toggleAnswers() {
     if (this.format === ContentType.SLIDE) {
       return;
     }
     if (this.correctVisible) {
-      this.toggleCorrect(false);
+      this.toggleCorrect();
     }
     this.toggleAnswersInChildComponents();
     this.announceAnswers();
-    if (this.isPresentation && sendState) {
-      this.sendUiState();
-    }
   }
 
   toggleAnswersInChildComponents() {
@@ -284,6 +254,9 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
       case ContentType.NUMERIC:
         this.answersVisible = this.numericStatistic.toggleAnswers();
         break;
+      case ContentType.SHORT_ANSWER:
+        this.answersVisible = this.shortAnswerStatistic.toggleAnswers();
+        break;
       case ContentType.QTI:
         this.answersVisible = this.qtiStatistic.toggleAnswers();
         break;
@@ -292,23 +265,27 @@ export class ContentResultsComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleCorrect(sendState = true) {
+  toggleCorrect() {
     if (this.answersVisible && !this.survey) {
-      if (this.format === ContentType.SORT) {
-        this.sortStatistic.toggleCorrect();
-      } else if (this.format === ContentType.NUMERIC) {
-        this.numericStatistic.toggleCorrect();
-      } else if (this.format === ContentType.QTI) {
-        this.qtiStatistic.toggleCorrect();
-      } else if (
-        [ContentType.CHOICE, ContentType.BINARY].includes(this.format)
-      ) {
-        this.choiceStatistic.toggleCorrect();
+      switch (this.format) {
+        case ContentType.SORT:
+          this.sortStatistic.toggleCorrect();
+          break;
+        case ContentType.NUMERIC:
+          this.numericStatistic.toggleCorrect();
+          break;
+        case ContentType.CHOICE:
+        case ContentType.BINARY:
+          this.choiceStatistic.toggleCorrect();
+          break;
+        case ContentType.QTI:
+          this.qtiStatistic.toggleCorrect();
+          break;
+        case ContentType.SHORT_ANSWER:
+          this.shortAnswerStatistic.toggleCorrect();
+          break;
       }
       this.correctVisible = !this.correctVisible;
-      if (this.isPresentation && sendState) {
-        this.sendUiState();
-      }
     }
   }
 

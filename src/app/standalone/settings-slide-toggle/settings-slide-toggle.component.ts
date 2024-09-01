@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FlexModule } from '@angular/flex-layout';
 import { FormsModule } from '@angular/forms';
@@ -5,11 +6,17 @@ import {
   MatSlideToggleChange,
   MatSlideToggleModule,
 } from '@angular/material/slide-toggle';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   standalone: true,
-  imports: [TranslocoModule, MatSlideToggleModule, FormsModule, FlexModule],
+  imports: [
+    TranslocoModule,
+    MatSlideToggleModule,
+    FormsModule,
+    FlexModule,
+    NgClass,
+  ],
   selector: 'app-settings-slide-toggle',
   templateUrl: './settings-slide-toggle.component.html',
   styleUrls: ['./settings-slide-toggle.component.scss'],

@@ -31,14 +31,24 @@
         }
         <div fxLayout="row">
           <div fxLayout="row" fxLayoutAlign="end" fxLayoutGap="8px">
-            @if (multipleRounds && answersVisible) {
+            @if (isStandalone && !isParticipant) {
+              <button
+                mat-icon-button
+                color="primary"
+                [matTooltip]="'creator.content.edit-content' | transloco"
+                [routerLink]="['..', 'edit', content.id]"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+            }
+            @if (multipleRounds) {
               <app-multiple-round-selection
                 [round]="roundsToDisplay"
                 (roundChanged)="changeRound($event)"
               >
               </app-multiple-round-selection>
             }
-            @if (answersVisible && allowingUnitChange && isStandalone) {
+            @if (allowingUnitChange && isStandalone) {
               <button
                 mat-icon-button
                 color="primary"
@@ -60,12 +70,7 @@
                 <mat-icon>percent</mat-icon>
               </button>
             }
-            @if (
-              answersVisible &&
-              !survey &&
-              correctOptionsPublished &&
-              isStandalone
-            ) {
+            @if (answersVisible && !survey && isStandalone) {
               <button
                 mat-icon-button
                 color="primary"
@@ -131,6 +136,8 @@
       tabindex="0"
       [rawText]="content.body"
       [renderedText]="content.renderedBody"
+      appLangContext
+      appDirContext
     ></app-rendered-text>
   }
   @if (format === ContentType.FLASHCARD) {
@@ -159,11 +166,16 @@
   extensionId="attachment-list"
   [extensionData]="attachmentData"
 ></lib-extension-point>
-<div [ngClass]="{ 'presentation-space': isPresentation }">
+<div
+  [ngClass]="{ 'presentation-space': isPresentation }"
+  appLangContext
+  appDirContext
+>
   @if ([ContentType.CHOICE, ContentType.BINARY].indexOf(format) !== -1) {
     <app-statistic-choice
       [content]="choiceContent"
       [directShow]="directShow"
+      [showCorrect]="showCorrect"
       (updateCounterEvent)="updateCounter($event)"
       [isSurvey]="survey"
       [isPresentation]="isPresentation"
@@ -177,7 +189,7 @@
       [content]="choiceContent"
       [directShow]="directShow"
       (updateCounterEvent)="updateCounter($event)"
-      [isSurvey]="survey"
+      [isSurvey]="true"
       [isPresentation]="isPresentation"
       [active]="active"
       [settings]="settings"
@@ -196,6 +208,7 @@
     <app-statistic-sort
       [content]="choiceContent"
       [isPresentation]="isPresentation"
+      [showCorrect]="showCorrect"
       [directShow]="directShow"
       (updateCounterEvent)="updateCounter($event)"
       [active]="active"
@@ -229,11 +242,22 @@
       [content]="numericContent"
       [isPresentation]="isPresentation"
       [directShow]="directShow"
+      [showCorrect]="showCorrect"
       (updateCounterEvent)="updateCounter($event)"
       [active]="active"
       [settings]="settings"
       [visualizationUnitChanged]="visualizationUnitChanged"
     ></app-statistic-numeric>
+  }
+  @if (format === ContentType.SHORT_ANSWER) {
+    <app-statistic-short-answer
+      [content]="content"
+      [isPresentation]="isPresentation"
+      [directShow]="directShow"
+      [showCorrect]="showCorrect"
+      [showModeration]="!isPresentation && !isParticipant"
+      (updateCounterEvent)="updateCounter($event)"
+    ></app-statistic-short-answer>
   }
   @if (format === ContentType.QTI) {
     <app-statistic-qti

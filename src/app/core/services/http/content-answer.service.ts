@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AbstractEntityService } from './abstract-entity.service';
 import { ChoiceAnswer } from '@app/core/models/choice-answer';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { NotificationService } from '@app/core/services/util/notification.service';
 import { EventService } from '@app/core/services/util/event.service';
 import { Answer } from '@app/core/models/answer';
@@ -15,6 +15,8 @@ import { WsConnectorService } from '@app/core/services/websockets/ws-connector.s
 import { AnswerOption } from '@app/core/models/answer-option';
 import { PrioritizationAnswer } from '@app/core/models/prioritization-answer';
 import { NumericAnswer } from '@app/core/models/numeric-answer';
+import { AnswerResultType } from '@app/core/models/answer-result';
+import { AnswerResponse } from '@app/core/models/answer-response';
 
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -22,12 +24,6 @@ const httpOptions = {
 
 @Injectable()
 export class ContentAnswerService extends AbstractEntityService<Answer> {
-  serviceApiUrl = {
-    text: '/text',
-    choice: '/choice',
-    qti: '/qti',
-  };
-
   constructor(
     private http: HttpClient,
     protected ws: WsConnectorService,
@@ -258,66 +254,30 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
     );
   }
 
-  getAnswerText(roomId: string, id: string): Observable<TextAnswer> {
-    const url = this.buildUri(`${this.serviceApiUrl.text}/${id}`, roomId);
+  addAnswerAndCheckResult<T extends Answer, R>(
+    roomId: string,
+    answer: T
+  ): Observable<AnswerResponse<R>> {
+    const url = this.buildUri('/check-result', roomId);
     return this.http
-      .get<TextAnswer>(url)
-      .pipe(catchError(this.handleError<TextAnswer>(`getAnswerText id=${id}`)));
-  }
-
-  getAnswerChoice(roomId: string, id: string): Observable<ChoiceAnswer> {
-    const url = this.buildUri(`${this.serviceApiUrl.choice}/${id}`, roomId);
-    return this.http
-      .get<ChoiceAnswer>(url)
+      .post<AnswerResponse<R>>(url, answer, httpOptions)
       .pipe(
-        catchError(this.handleError<ChoiceAnswer>(`getChoiceAnswer id=${id}`))
+        catchError(
+          this.handleError<AnswerResponse<R>>('addAnswerAndCheckResult')
+        )
       );
   }
 
-  getAnswerQti(roomId: string, id: string): Observable<QtiAnswer> {
-    const url = this.buildUri(`${this.serviceApiUrl.text}/${id}`, roomId);
-    return this.http
-      .get<QtiAnswer>(url)
-      .pipe(catchError(this.handleError<QtiAnswer>(`getAnswerQti id=${id}`)));
-  }
-
-  updateAnswerText(
+  getAnswer<T extends Answer>(
     roomId: string,
-    updatedAnswerText: TextAnswer
-  ): Observable<TextAnswer> {
-    const connectionUrl = this.buildUri(
-      `${this.serviceApiUrl.text}/${updatedAnswerText.id}`,
-      roomId
-    );
+    contentId: string
+  ): Observable<T> {
+    const url = this.buildUri(`/${contentId}`, roomId);
     return this.http
-      .put<TextAnswer>(connectionUrl, updatedAnswerText, httpOptions)
-      .pipe(catchError(this.handleError<TextAnswer>('updateTextAnswer')));
-  }
-
-  updateAnswerChoice(
-    roomId: string,
-    updatedAnswerChoice: ChoiceAnswer
-  ): Observable<ChoiceAnswer> {
-    const connectionUrl = this.buildUri(
-      `${this.serviceApiUrl.choice}/${updatedAnswerChoice.id}`,
-      roomId
-    );
-    return this.http
-      .put<ChoiceAnswer>(connectionUrl, updatedAnswerChoice, httpOptions)
-      .pipe(catchError(this.handleError<ChoiceAnswer>('updateChoiceAnswer')));
-  }
-
-  updateAnswerQti(
-    roomId: string,
-    updatedAnswerQti: QtiAnswer
-  ): Observable<QtiAnswer> {
-    const connectionUrl = this.buildUri(
-      `${this.serviceApiUrl.qti}/${updatedAnswerQti.id}`,
-      roomId
-    );
-    return this.http
-      .put<QtiAnswer>(connectionUrl, updatedAnswerQti, httpOptions)
-      .pipe(catchError(this.handleError<QtiAnswer>('updateQtiAnswer')));
+      .get<T>(url)
+      .pipe(
+        catchError(this.handleError<T>(`getAnswerText contentId=${contentId}`))
+      );
   }
 
   deleteAnswerText(roomId: string, id: string): Observable<TextAnswer> {
@@ -356,5 +316,20 @@ export class ContentAnswerService extends AbstractEntityService<Answer> {
       answers[j] = temp;
     }
     return answers;
+  }
+
+  getAnswerResultIcon(state: AnswerResultType) {
+    switch (state) {
+      case AnswerResultType.CORRECT:
+        return 'check';
+      case AnswerResultType.PARTIALLY_CORRECT:
+        return 'check';
+      case AnswerResultType.WRONG:
+        return 'close';
+      case AnswerResultType.UNANSWERED:
+        return 'horizontal_rule';
+      default:
+        return 'fiber_manual_record';
+    }
   }
 }

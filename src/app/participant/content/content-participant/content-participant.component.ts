@@ -31,7 +31,7 @@ import { EventService } from '@app/core/services/util/event.service';
 import { EntityChangeNotification } from '@app/core/models/events/entity-change-notification';
 import { takeUntil } from 'rxjs';
 import { ContentService } from '@app/core/services/http/content.service';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '@app/core/services/util/notification.service';
 import { RoomUserAlias } from '@app/core/models/room-user-alias';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -61,9 +61,21 @@ import { FlexModule } from '@angular/flex-layout';
 import { MatCard } from '@angular/material/card';
 import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
 import { CoreModule } from '@app/core/core.module';
-import { ContentGroup, GroupType } from '@app/core/models/content-group';
+import {
+  ContentGroup,
+  GroupType,
+  PublishingMode,
+} from '@app/core/models/content-group';
 import { ContentPublishService } from '@app/core/services/util/content-publish.service';
 import { ContentState } from '@app/core/models/content-state';
+import { LanguageContextDirective } from '@app/core/directives/language-context.directive';
+import { Room } from '@app/core/models/room';
+import { LanguageDirectionPipe } from '@app/core/pipes/language-direction.pipe';
+import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
+import { AnswerResultType } from '@app/core/models/answer-result';
+import { ContentShortAnswerParticipantComponent } from '@app/participant/content/content-short-answer-participant/content-short-answer-participant.component';
+import { ShortAnswerAnswer } from '@app/core/models/short-answer-answer';
+import { STEPPER_ANIMATION_DURATION } from '@app/standalone/stepper/stepper.component';
 
 interface ContentActionTab {
   route: string;
@@ -98,6 +110,7 @@ interface ContentActionTab {
     ContentWordcloudParticipantComponent,
     ContentPrioritizationParticipantComponent,
     ContentNumericParticipantComponent,
+    ContentShortAnswerParticipantComponent,
     ContentQtiParticipantComponent,
     NgClass,
     MatButton,
@@ -108,6 +121,8 @@ interface ContentActionTab {
     DividerComponent,
     LeaderboardPageComponent,
     TranslocoPipe,
+    LanguageContextDirective,
+    LanguageDirectionPipe,
   ],
 })
 export class ContentParticipantComponent
@@ -116,7 +131,7 @@ export class ContentParticipantComponent
 {
   @Input({ required: true }) content!: Content;
   @Input({ required: true }) contentGroup!: ContentGroup;
-  @Input() answer?: Answer;
+  @Input({ required: true }) userId!: string;
   @Input() lastContent = false;
   @Input() active = false;
   @Input({ required: true }) index!: number;
@@ -125,14 +140,16 @@ export class ContentParticipantComponent
   @Input() attribution?: string;
   @Input() alias?: RoomUserAlias;
   @Input() showCard = true;
-  @Output() answerChanged = new EventEmitter<Answer>();
+  @Input() hasAbstained = false;
+  @Input() answerResult?: AnswerResultType;
+  @Output() answerChanged = new EventEmitter<AnswerResultType>();
   @Output() next = new EventEmitter<void>();
   @Output() answerReset = new EventEmitter<string>();
 
   sendEvent = new EventEmitter<string>();
+  answer?: Answer;
   isLoading = true;
   ContentType: typeof ContentType = ContentType;
-  hasAbstained = false;
   answersString = '';
   extensionData: any;
   alreadySent = false;
@@ -140,6 +157,7 @@ export class ContentParticipantComponent
   flashcardMarkdownFeatures = MarkdownFeatureset.EXTENDED;
   HotkeyAction = HotkeyAction;
   a11yMsg?: string;
+  language?: string;
 
   // TODO: non-null assertion operator is used here temporaly. We need to make this component generic with a future refactoring.
   choiceContent!: ContentChoice;
@@ -155,12 +173,15 @@ export class ContentParticipantComponent
   wordcloudAnswer?: MultipleTextsAnswer;
   textAnswer?: TextAnswer;
   numericAnswer?: NumericAnswer;
+  shortAnswerAnswer?: ShortAnswerAnswer;
   qtiAnswer?: QtiAnswer;
 
   selectedRoute = '';
   endDate?: Date;
   answeringLocked = false;
   GroupType = GroupType;
+  PublishingMode = PublishingMode;
+  waitForCountdown = true;
 
   tabs: ContentActionTab[] = [
     {
@@ -192,9 +213,11 @@ export class ContentParticipantComponent
     private contentService: ContentService,
     private translateService: TranslocoService,
     private notificationService: NotificationService,
-    private contentPublishService: ContentPublishService
+    private contentPublishService: ContentPublishService,
+    private answerService: ContentAnswerService
   ) {
     super(formService);
+    this.language = (route.snapshot.data['room'] as Room).language;
   }
 
   ngOnInit(): void {
@@ -203,15 +226,24 @@ export class ContentParticipantComponent
       this.checkForCountdown();
     }
     this.setExtensionData(this.content.roomId, this.content.id);
-    if (this.answer) {
-      this.alreadySent = true;
-      this.checkIfAbstention(this.answer);
-      this.initAnswerData();
-    }
     this.initContentData();
     this.isMultiple = (this.content as ContentChoice).multiple;
     this.a11yMsg = this.getA11yMessage();
-    this.isLoading = false;
+    this.answerService
+      .getAnswersByUserIdContentIds(this.content.roomId, this.userId, [
+        this.content.id,
+      ])
+      .subscribe({
+        next: (answer) => {
+          if (answer[0]) {
+            this.answer = answer[0];
+            this.alreadySent = true;
+            this.initAnswerData();
+          }
+          this.isLoading = false;
+        },
+        error: () => (this.isLoading = false),
+      });
     this.eventService
       .on<EntityChangeNotification>('EntityChangeNotification')
       .pipe(takeUntil(this.destroyed$))
@@ -223,7 +255,6 @@ export class ContentParticipantComponent
   }
 
   reloadContent() {
-    this.isLoading = true;
     this.contentService
       .getContent(this.content.roomId, this.content.id, false)
       .pipe(takeUntil(this.destroyed$))
@@ -244,14 +275,13 @@ export class ContentParticipantComponent
           if (content.state.round > 1 && newState.answeringEndTime) {
             this.startCountdown(newState.answeringEndTime);
           }
+          this.updateTab('');
         } else if (this.isContentStarted(newState)) {
           this.startCountdown(newState.answeringEndTime!);
         } else if (this.isContentStopped(newState)) {
           this.answeringLocked = true;
         }
         this.content.state = newState;
-        this.updateTab('');
-        this.isLoading = false;
       });
   }
 
@@ -273,13 +303,16 @@ export class ContentParticipantComponent
     this.answeringLocked = false;
     this.endDate = undefined;
     this.answer = undefined;
-    this.initAnswerData();
+    this.resetAnswerData();
   }
 
-  private startCountdown(endDate: Date): void {
+  private startCountdown(endDate: Date, timeout = 0): void {
     if (this.active) {
       this.answeringLocked = false;
       this.endDate = new Date(endDate);
+      setTimeout(() => {
+        this.waitForCountdown = false;
+      }, timeout);
     }
   }
 
@@ -307,22 +340,25 @@ export class ContentParticipantComponent
         ) {
           this.answeringLocked = true;
         } else {
-          this.startCountdown(this.content.state.answeringEndTime);
+          this.startCountdown(
+            this.content.state.answeringEndTime,
+            STEPPER_ANIMATION_DURATION
+          );
         }
       }
     }
   }
 
+  private resetAnswerData(): void {
+    this.choiceAnswer = undefined;
+    this.textAnswer = undefined;
+    this.prioritizationAnswer = undefined;
+    this.numericAnswer = undefined;
+    this.wordcloudAnswer = undefined;
+    this.shortAnswerAnswer = undefined;
+  }
+
   initAnswerData() {
-    if (!this.answer) {
-      this.choiceAnswer = undefined;
-      this.textAnswer = undefined;
-      this.prioritizationAnswer = undefined;
-      this.numericAnswer = undefined;
-      this.wordcloudAnswer = undefined;
-      this.qtiAnswer = undefined;
-      return;
-    }
     if (
       [ContentType.CHOICE, ContentType.BINARY, ContentType.SORT].includes(
         this.content.format
@@ -333,7 +369,10 @@ export class ContentParticipantComponent
       this.initWordcloudAnswerData();
     } else if (this.content.format === ContentType.TEXT) {
       this.textAnswer = this.answer as TextAnswer;
-      this.answersString = (this.answer as TextAnswer).body || '';
+      this.answersString = this.textAnswer.body ?? '';
+    } else if (this.content.format === ContentType.SHORT_ANSWER) {
+      this.shortAnswerAnswer = this.answer as ShortAnswerAnswer;
+      this.answersString = this.shortAnswerAnswer.text || '';
     } else if (this.content.format === ContentType.PRIORITIZATION) {
       this.prioritizationAnswer = this.answer as PrioritizationAnswer;
     } else if (this.content.format === ContentType.SCALE) {
@@ -393,34 +432,23 @@ export class ContentParticipantComponent
     };
   }
 
-  checkIfAbstention(answer: Answer) {
-    if (answer.format === ContentType.TEXT) {
-      this.hasAbstained = !(answer as TextAnswer).body;
-    } else if (answer.format === ContentType.WORDCLOUD) {
-      this.hasAbstained = !((answer as MultipleTextsAnswer).texts?.length > 0);
-    } else if (answer.format === ContentType.PRIORITIZATION) {
-      this.hasAbstained = !(answer as PrioritizationAnswer).assignedPoints;
-    } else if (answer.format === ContentType.NUMERIC) {
-      this.hasAbstained = !(answer as NumericAnswer).selectedNumber;
-    } else if (answer.format === ContentType.QTI) {
-      this.hasAbstained = !((answer as QtiAnswer).responses?.length > 0);
-    } else {
-      this.hasAbstained = !(answer as ChoiceAnswer).selectedChoiceIndexes;
-    }
-  }
-
   submitAnswerEvent($event: MouseEvent, type: string) {
     $event.preventDefault();
     this.sendEvent.emit(type);
   }
 
-  forwardAnswerMessage($event: Answer) {
-    this.answerChanged.emit($event);
-    setTimeout(() => {
-      this.answer = $event;
-      this.enableForm();
+  forwardAnswerMessage(status: {
+    answer?: Answer;
+    answerResult: AnswerResultType;
+  }) {
+    this.answer = status.answer;
+    if (this.answer) {
       this.initAnswerData();
-      this.checkIfAbstention($event);
+    }
+    this.answerChanged.emit(status.answerResult);
+    setTimeout(() => {
+      this.enableForm();
+      this.hasAbstained = status.answerResult === AnswerResultType.ABSTAINED;
       this.alreadySent = true;
     }, 100);
   }

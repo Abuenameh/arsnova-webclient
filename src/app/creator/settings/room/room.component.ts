@@ -4,7 +4,7 @@ import {
   AdvancedSnackBarTypes,
   NotificationService,
 } from '@app/core/services/util/notification.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { RoomService } from '@app/core/services/http/room.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EventService } from '@app/core/services/util/event.service';
@@ -26,7 +26,6 @@ import { take } from 'rxjs';
 @Component({
   selector: 'app-room-edit',
   templateUrl: './room.component.html',
-  styleUrls: ['./room.component.scss'],
 })
 export class RoomComponent extends FormComponent implements OnInit {
   @Output() saveEvent: EventEmitter<UpdateEvent> =

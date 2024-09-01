@@ -6,7 +6,7 @@ import { ContentChoiceParticipantComponent } from './content/content-choice-part
 import { ContentTextParticipantComponent } from './content/content-text-participant/content-text-participant.component';
 import { ContentQtiParticipantComponent } from './content/content-qti-participant/content-qti-participant.component';
 import { ParticipantContentCarouselPageComponent } from './participant-content-carousel-page/participant-content-carousel-page.component';
-import { TranslocoModule, provideTranslocoScope } from '@ngneat/transloco';
+import { TranslocoModule, provideTranslocoScope } from '@jsverse/transloco';
 import { CdkStepperModule } from '@angular/cdk/stepper';
 import { ExtensionPointModule } from '@projects/extension-point/src/lib/extension-point.module';
 import { ContentParticipantComponent } from './content/content-participant/content-participant.component';

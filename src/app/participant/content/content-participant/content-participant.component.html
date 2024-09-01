@@ -20,6 +20,7 @@
             [alias]="alias"
             [roomId]="content.roomId"
             [timerActive]="!!content.duration"
+            [aliasRequired]="contentGroup.leaderboardEnabled"
           ></app-content-waiting>
         </div>
       } @else {
@@ -35,6 +36,8 @@
               tabindex="0"
               [rawText]="content.body"
               [renderedText]="content.renderedBody"
+              appLangContext
+              appDirContext
             ></app-rendered-text>
             @if (alreadySent) {
               <div tabindex="0" class="visually-hidden">
@@ -55,7 +58,9 @@
             }
             @if (
               !isLoading &&
-              (alreadySent || content.format === ContentType.FLASHCARD) &&
+              (alreadySent ||
+                answeringLocked ||
+                content.format === ContentType.FLASHCARD) &&
               content.format !== ContentType.SLIDE &&
               (statsPublished || contentGroup.leaderboardEnabled)
             ) {
@@ -85,7 +90,13 @@
             extensionId="attachment-list"
             [extensionData]="extensionData"
           ></lib-extension-point>
-          @if (active && content.duration && endDate && !answeringLocked) {
+          @if (
+            active &&
+            content.duration &&
+            endDate &&
+            !answeringLocked &&
+            !waitForCountdown
+          ) {
             <app-countdown-timer
               [endDate]="endDate"
               [duration]="content.duration"
@@ -98,6 +109,8 @@
               <form
                 (ngSubmit)="submitAnswerEvent($event, 'answer')"
                 id="answerForm"
+                appLangContext
+                [dir]="language | languageDirection"
               >
                 <div>
                   @if (
@@ -192,6 +205,20 @@
                     >
                     </app-content-numeric-participant>
                   }
+                  @if (content.format === ContentType.SHORT_ANSWER) {
+                    <app-content-short-answer-participant
+                      [answer]="shortAnswerAnswer"
+                      [content]="content"
+                      [isDisabled]="
+                        formDisabled || alreadySent || answeringLocked
+                      "
+                      [sendEvent]="sendEvent"
+                      [correctOptionsPublished]="correctOptionsPublished"
+                      [isCorrect]="answerResult === 'CORRECT'"
+                      (answerChanged)="forwardAnswerMessage($event)"
+                    >
+                    </app-content-short-answer-participant>
+                  }
                   @if (content.format === ContentType.QTI) {
                     <app-content-qti-participant
                       [answer]="qtiAnswer"
@@ -221,37 +248,66 @@
                           visible: alreadySent || answeringLocked,
                           invisible: !alreadySent && !answeringLocked,
                         }"
-                        class="text primary"
+                        class="primary info-container"
                       >
                         @if (alreadySent) {
-                          <div>
-                            @if (!hasAbstained && !content.duration) {
-                              <p class="primary">
-                                {{ 'participant.answer.has-voted' | transloco }}
-                              </p>
-                            } @else if (
-                              !hasAbstained &&
-                              answer &&
-                              answer.durationMs &&
-                              content.state.answeringEndTime
+                          <div
+                            fxLayout="row"
+                            fxLayoutAlign="start center"
+                            fxLayoutGap="16px"
+                          >
+                            <div>
+                              @if (!hasAbstained && !content.duration) {
+                                <p class="primary">
+                                  {{
+                                    'participant.answer.has-voted' | transloco
+                                  }}
+                                </p>
+                              } @else if (
+                                !hasAbstained &&
+                                answer &&
+                                answer.durationMs &&
+                                content.state.answeringEndTime
+                              ) {
+                                <p class="primary">
+                                  {{
+                                    'participant.answer.answered-in-time'
+                                      | transloco
+                                        : {
+                                            duration: (
+                                              answer.durationMs / 1000
+                                            ).toFixed(2),
+                                          }
+                                  }}
+                                </p>
+                              } @else if (hasAbstained) {
+                                <p class="primary">
+                                  {{
+                                    'participant.answer.has-abstained'
+                                      | transloco
+                                  }}
+                                </p>
+                              }
+                            </div>
+                            @if (
+                              (contentGroup.publishingMode !==
+                                PublishingMode.LIVE ||
+                                lastContent) &&
+                              contentGroup.groupType === GroupType.QUIZ
                             ) {
-                              <p class="primary">
+                              <button
+                                type="button"
+                                mat-raised-button
+                                color="primary"
+                                (click)="next.emit()"
+                              >
                                 {{
-                                  'participant.answer.answered-in-time'
-                                    | transloco
-                                      : {
-                                          duration: (
-                                            answer.durationMs / 1000
-                                          ).toFixed(2),
-                                        }
+                                  (lastContent
+                                    ? 'participant.answer.go-to-overview'
+                                    : 'participant.answer.next-content'
+                                  ) | transloco
                                 }}
-                              </p>
-                            } @else if (hasAbstained) {
-                              <p class="primary">
-                                {{
-                                  'participant.answer.has-abstained' | transloco
-                                }}
-                              </p>
+                              </button>
                             }
                           </div>
                         } @else if (answeringLocked) {
@@ -318,7 +374,7 @@
                     [content]="content"
                     [active]="true"
                     [directShow]="true"
-                    [correctOptionsPublished]="correctOptionsPublished"
+                    [showCorrect]="correctOptionsPublished"
                     [isStandalone]="false"
                   >
                   </app-content-results>

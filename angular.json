@@ -83,7 +83,7 @@
             "polyfills": ["zone.js", "zone.js/testing"],
             "scripts": [],
             "inlineStyleLanguage": "scss",
-            "styles": ["src/testing/fonts.scss", "src/styles.scss"],
+            "styles": ["src/fonts.scss", "src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["src/app/core/theme/light-theme/default/"]
             },
@@ -107,10 +107,7 @@
             "browserTarget": "arsnova-webclient:build",
             "compodoc": false,
             "port": 6006,
-            "styles": [
-              "src/testing/fonts.scss",
-              ".storybook/custom-styles.scss"
-            ]
+            "styles": ["src/fonts.scss", ".storybook/custom-styles.scss"]
           }
         },
         "build-storybook": {
@@ -120,10 +117,7 @@
             "browserTarget": "arsnova-webclient:build",
             "compodoc": false,
             "outputDir": "dist/storybook/arsnova-webclient",
-            "styles": [
-              "src/testing/fonts.scss",
-              ".storybook/custom-styles.scss"
-            ]
+            "styles": ["src/fonts.scss", ".storybook/custom-styles.scss"]
           }
         }
       }

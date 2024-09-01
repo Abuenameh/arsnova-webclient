@@ -1,12 +1,11 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ContentService } from '@app/core/services/http/content.service';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { Content } from '@app/core/models/content';
 import { ContentAnswerService } from '@app/core/services/http/content-answer.service';
 import { TextAnswer } from '@app/core/models/text-answer';
 import { StatisticContentBaseComponent } from '@app/standalone/statistic-content/statistic-content-base';
 import { Observable, takeUntil } from 'rxjs';
-import { EventService } from '@app/core/services/util/event.service';
 import { TextStatistic } from '@app/core/models/text-statistic';
 import { DialogService } from '@app/core/services/util/dialog.service';
 import {
@@ -46,11 +45,10 @@ export class StatisticTextComponent
     protected contentService: ContentService,
     private contentAnswerService: ContentAnswerService,
     protected translateService: TranslocoService,
-    protected eventService: EventService,
     private dialogService: DialogService,
     private notificationService: NotificationService
   ) {
-    super(contentService, eventService, translateService);
+    super(contentService, translateService);
   }
 
   loadData(): Observable<TextAnswer[]> {

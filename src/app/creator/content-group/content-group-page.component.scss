@@ -51,3 +51,15 @@
   margin-top: -$spacing;
   margin-bottom: $spacing !important;
 }
+
+.live-icon {
+  font-size: $s-font-size;
+  width: $s-font-size;
+  height: $s-font-size;
+}
+
+.live-mode-hint {
+  cursor: pointer;
+  font-size: $s-font-size;
+  color: var(--play);
+}

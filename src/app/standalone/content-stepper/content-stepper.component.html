@@ -12,10 +12,7 @@
         <mat-card
           [ngClass]="{ 'no-card-appearance': hideControls }"
           [hidden]="
-            showStepInfo &&
-            isLiveMode &&
-            content.duration &&
-            !content.state.answeringEndTime
+            showStepInfo && isLiveMode && !content.state.answeringEndTime
           "
         >
           <app-content-results
@@ -23,11 +20,10 @@
             [directShow]="
               currentStep === i &&
               settings.showContentResultsDirectly &&
-              !content.duration
+              !isLiveMode
             "
             [active]="currentStep === i"
             [index]="i"
-            [correctOptionsPublished]="true"
             [isPresentation]="hideControls"
             (updatedCounter)="updateCounter($event, currentStep === i)"
             [indexChanged]="indexChanged"
@@ -42,9 +38,7 @@
           fxLayoutGap="3em"
           class="waiting-container"
           [hidden]="
-            !showStepInfo ||
-            !isLiveMode ||
-            !(content.duration && !content.state.answeringEndTime)
+            !showStepInfo || !isLiveMode || content.state.answeringEndTime
           "
         >
           <app-content-step-info

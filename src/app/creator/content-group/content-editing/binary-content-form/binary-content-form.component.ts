@@ -4,7 +4,7 @@ import { FormService } from '@app/core/services/util/form.service';
 import { ContentType } from '@app/core/models/content-type.enum';
 import { FormComponent } from '@app/standalone/form/form.component';
 import { Content } from '@app/core/models/content';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { AnswerOption } from '@app/core/models/answer-option';
 import { ContentForm } from '@app/creator/content-group/content-editing/content-form';
 
@@ -69,6 +69,8 @@ export class BinaryContentFormComponent
     if (this.currentOption !== BINARY_OPTION.NEITHER) {
       const index = this.currentOption === BINARY_OPTION.YES ? 0 : 1;
       (this.content as ContentChoice).correctOptionIndexes = [index];
+    } else {
+      (this.content as ContentChoice).correctOptionIndexes = [];
     }
     const options: AnswerOption[] = [];
     this.options.forEach((val) => {

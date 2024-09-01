@@ -148,7 +148,7 @@
   "user-profile": {
     "a11y-message": "Ahora estás en la página de la cuenta.",
     "account-settings": "Configuración de la cuenta",
-    "username": "Nombre de usuario",
+    "username": "ID de usuario",
     "guest-hint": "No has iniciado sesión y estás utilizando una cuenta de invitado.",
     "first-name": "Nombre",
     "last-name": "Apellido",
@@ -286,7 +286,9 @@
     "display-overview": "Mostrar atajos de teclado",
     "action": "Acción",
     "keys": "Atajo de teclado",
-    "input-field": "campo de entrada"
+    "input-field": "campo de entrada",
+    "press": "Pulse",
+    "to-do-action": "para {{ action }}"
   },
   "keys": {
     "ctrl": "Ctrl",
@@ -345,7 +347,7 @@
     "select-time-all": "Sin límite",
     "sort-votedesc": "Mejor clasificación",
     "sort-voteasc": "Peor clasificación",
-    "sort-time": "Última creación",
+    "sort-time": "Última",
     "list": "Lista de publicaciones",
     "there-are-new-posts": "Hay nuevas publicaciones",
     "comments-are-not-enabled": "La sección de preguntas y respuestas no está habilitada.",
@@ -388,7 +390,25 @@
     "round-displayed": "Se muestra la ronda {{rounds}}",
     "rounds-displayed": "Se muestran las rondas {{rounds}}",
     "leaderboard": "Clasificación",
-    "points": "Puntos"
+    "points": "Puntos",
+    "contents-will-be-published-gradually": "Los contenidos se darán a conocer gradualmente",
+    "content": "Contenido",
+    "of": "de",
+    "your-name": "Su nombre",
+    "join-quiz": "Participar en el concurso",
+    "get-ready": "¡Prepárate!",
+    "get-ready-alias": "¡Prepárate, {{alias}}!",
+    "no-leaderboard-entries": "Aún no hay resultados.",
+    "group-type-mixed": "Mixto",
+    "group-type-quiz": "Quiz",
+    "group-type-survey": "Encuesta",
+    "group-type-flashcards": "Tarjetas de memoria",
+    "content-not-published": "Contenido no publicado",
+    "content-count": "{{count}} contenido",
+    "enter-alias-for-participation": "Introduzca un apodo para su participación",
+    "generate-new-alias": "Generar nuevo apodo",
+    "answer-fast-to-get-more-points": "Responde rápido para conseguir más puntos",
+    "answer-correct-to-get-points": "Responda correctamente para obtener puntos"
   },
   "answer": {
     "word": "Palabra clave",
@@ -399,6 +419,7 @@
     "your-answer": "Tu respuesta",
     "select-a-number-between": "Selecciona un número entre {{min}} y {{max}}",
     "correct-answer-is": "La respuesta correcta es",
+    "correct-answers-are": "La respuestas correctas son:",
     "have-answered-correctly": "han respondido correctamente"
   },
   "survey": {
@@ -590,7 +611,8 @@
     "report-room": "Sala de informes"
   },
   "general": {
-    "a11y-remove-filter": "Quitar filtro"
+    "a11y-remove-filter": "Quitar filtro",
+    "not-specified": "No especificado"
   },
   "ordinal": {
     "one": "",

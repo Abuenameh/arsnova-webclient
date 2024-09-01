@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { forkJoin, Observable, take } from 'rxjs';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { ContentScale } from '@app/core/models/content-scale';
 import { ContentService } from '@app/core/services/http/content.service';
 import { LikertScaleService } from '@app/core/services/util/likert-scale.service';
 import { StatisticChoiceComponent } from '@app/standalone/statistic-content/statistic-choice/statistic-choice.component';
-import { EventService } from '@app/core/services/util/event.service';
 import { PresentationService } from '@app/core/services/util/presentation.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
 import { MatIcon } from '@angular/material/icon';
@@ -14,6 +13,8 @@ import { RenderedTextComponent } from '@app/standalone/rendered-text/rendered-te
 import { LoadingIndicatorComponent } from '@app/standalone/loading-indicator/loading-indicator.component';
 import { NgIf, NgClass, NgFor } from '@angular/common';
 import { FlexModule } from '@angular/flex-layout';
+import { ActivatedRoute } from '@angular/router';
+import { LanguageService } from '@app/core/services/util/language.service';
 
 @Component({
   selector: 'app-statistic-scale',
@@ -32,20 +33,20 @@ import { FlexModule } from '@angular/flex-layout';
   ],
 })
 export class StatisticScaleComponent extends StatisticChoiceComponent {
+  language: string;
+
   constructor(
     protected contentService: ContentService,
     protected translateService: TranslocoService,
     protected themeService: ThemeService,
-    protected eventService: EventService,
     protected presentationService: PresentationService,
-    private likertScaleService: LikertScaleService
+    private likertScaleService: LikertScaleService,
+    route: ActivatedRoute,
+    languageService: LanguageService
   ) {
-    super(
-      contentService,
-      translateService,
-      themeService,
-      eventService,
-      presentationService
+    super(contentService, translateService, themeService, presentationService);
+    this.language = languageService.ensureValidLang(
+      route.snapshot.data.room?.language
     );
   }
 
@@ -59,7 +60,7 @@ export class StatisticScaleComponent extends StatisticChoiceComponent {
       const optionLabels$ = scaleOptions.map(
         (l) =>
           this.translateService
-            .selectTranslate(l)
+            .selectTranslate(l, undefined, this.language)
             .pipe(take(1)) as Observable<string>
       );
       forkJoin(optionLabels$).subscribe(

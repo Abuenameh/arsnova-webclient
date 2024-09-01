@@ -1,5 +1,5 @@
 import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
-import { provideTranslocoScope, TranslocoService } from '@ngneat/transloco';
+import { provideTranslocoScope, TranslocoService } from '@jsverse/transloco';
 import { CommentService } from '@app/core/services/http/comment.service';
 import { Comment } from '@app/core/models/comment';
 import {
@@ -18,6 +18,7 @@ import { FormService } from '@app/core/services/util/form.service';
 import { LoadingButtonComponent } from '@app/standalone/loading-button/loading-button.component';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { take } from 'rxjs';
+import { LanguageContextDirective } from '@app/core/directives/language-context.directive';
 
 @Component({
   standalone: true,
@@ -27,6 +28,7 @@ import { take } from 'rxjs';
     DateComponent,
     FormattingToolbarComponent,
     LoadingButtonComponent,
+    LanguageContextDirective,
   ],
   providers: [provideTranslocoScope('creator')],
   selector: 'app-comment-answer',
