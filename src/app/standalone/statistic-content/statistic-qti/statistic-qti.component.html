@@ -3,7 +3,7 @@
     <app-loading-indicator></app-loading-indicator>
   }
   @if (!isLoading) {
-    <qti-assessment-item #qtiItem [disabled]="answersVisible || isPresentation">
+    <qti-assessment-item #qtiItem>
       <div [outerHTML]="content.qtiItem | safeHtml"></div>
     </qti-assessment-item>
     <div
@@ -12,7 +12,7 @@
         invisible: !answersVisible,
       }"
     >
-      @if (answersVisible) {
+      @if (answersVisible && showResponses) {
         <mat-card appearance="outlined" [style.width.%]="100">
           <mat-card-title>Participants' responses</mat-card-title>
           <div fxLayout="row wrap" fxLayoutAlign=" center">
@@ -35,34 +35,20 @@
   @if (!isLoading) {
     <div
       class="results-container"
+      [style.marginTop.em]="1"
       [ngClass]="{
         invisible: !answersVisible || !correctVisible,
       }"
     >
-      @if (correctResponses?.length == 1) {
-        <span class="info-text">{{
-          'answer.correct-answer-is' | transloco
-        }}</span>
-      } @else {
-        <span class="info-text">{{
-          'answer.correct-answers-are' | transloco
-        }}</span>
-      }
-      @for (correctResponse of correctResponses; track correctResponse) {
-        @if ($last && $count > 1) {
-          <span> and</span>
-        }
-        <span
-          >&nbsp;<tex-math class="response">{{
-            correctResponse
-          }}</tex-math></span
+      <mat-card appearance="outlined" [style.width.%]="100">
+        <qti-assessment-item
+          #qtiItemAnswers
+          data-id="answers"
+          (qti-assessment-item-connected)="answersConnected($any($event))"
         >
-        @if (!$last) {
-          <span>,</span>
-        } @else {
-          <span>.</span>
-        }
-      }
+          <div [outerHTML]="content.qtiItem | safeHtml"></div>
+        </qti-assessment-item>
+      </mat-card>
     </div>
   }
 </div>

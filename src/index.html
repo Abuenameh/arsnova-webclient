@@ -29,18 +29,14 @@
       import { ComputeEngine } from 'https://unpkg.com/@cortex-js/compute-engine?module';
       globalThis.ce = new ComputeEngine();
       globalThis.isEqualToCorrect = (fn, identifier) => {
-        return ce
-          .parse(fn.variable(identifier))
-          .isEqual(ce.parse(fn.correct(identifier)));
+        const lhs = ce.parse(fn.variable(identifier));
+        const rhs = ce.parse(fn.correct(identifier));
+        return lhs.isSame(rhs) || lhs.isEqual(rhs);
       };
-      globalThis.setMathfieldStatus = (identifier, status) => {
-        setTimeout(() => {
-          var pci = document.querySelector(
-            `qti-portable-custom-interaction[response-identifier="${identifier}"] > qti-interaction-markup`
-          );
-          pci?.setAttribute('status', status);
-          pci?.dispatchEvent(new CustomEvent('status', { detail: status }));
-        });
+      globalThis.isSameAsCorrect = (fn, identifier) => {
+        const lhs = ce.parse(fn.variable(identifier));
+        const rhs = ce.parse(fn.correct(identifier));
+        return lhs.isSame(rhs);
       };
     </script>
     <script type="text/javascript">

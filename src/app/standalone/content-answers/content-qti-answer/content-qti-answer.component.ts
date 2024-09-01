@@ -34,8 +34,9 @@ export class ContentQtiAnswerComponent {
   @Output() responsesChanged = new EventEmitter<ResponseVariable[]>();
 
   @ViewChild('qti') qti?: ElementRef<QtiAssessmentItem>;
+  @ViewChild('qtiAnswers') qtiAnswers?: ElementRef<QtiAssessmentItem>;
 
-  correctResponses?: string[];
+  correctResponses?: (string | string[] | null | undefined)[];
 
   showAnswerIndicator(): boolean {
     return !!this.answer && this.correctAnswersPublished;
@@ -58,15 +59,10 @@ export class ContentQtiAnswerComponent {
     }
     const qtiItem = event.target as QtiAssessmentItem;
     qtiItem.variables = this.responses;
-    if (this.showAnswerIndicator()) {
-      qtiItem.processResponse();
-    }
     this.correctResponses = this.qti?.nativeElement.variables
       .filter((v) => v.type === 'response' && v.identifier !== 'numAttempts')
       .map(
-        (v) =>
-          this.qti?.nativeElement.getResponse(v.identifier)
-            .correctResponse as string
+        (v) => this.qti?.nativeElement.getResponse(v.identifier).correctResponse
       );
   }
 
@@ -81,5 +77,9 @@ export class ContentQtiAnswerComponent {
         qtiItem!.getResponse(variable.identifier)
       );
     this.responsesChanged.emit(responses);
+  }
+
+  answersConnected(event: CustomEvent) {
+    this.qtiAnswers?.nativeElement.showCorrectResponse(true);
   }
 }

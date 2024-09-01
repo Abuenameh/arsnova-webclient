@@ -3,36 +3,20 @@
     #qti
     (qti-interaction-changed)="interactionChanged($any($event))"
     (qti-assessment-item-connected)="itemConnected($any($event))"
-    [disabled]="isDisabled"
   >
     <div [outerHTML]="content.qtiItem | safeHtml"></div>
   </qti-assessment-item>
   <div class="results-container">
     @if (showAnswerIndicator()) {
-      @if (correctResponses?.length == 1) {
-        <span class="info-text">{{
-          'answer.correct-answer-is' | transloco
-        }}</span>
-      } @else {
-        <span class="info-text">{{
-          'answer.correct-answers-are' | transloco
-        }}</span>
-      }
-      @for (correctResponse of correctResponses; track correctResponse) {
-        @if ($last && $count > 1) {
-          <span> and</span>
-        }
-        <span
-          >&nbsp;<tex-math class="response">{{
-            correctResponse
-          }}</tex-math></span
+      <mat-card appearance="outlined" [style.width.%]="100">
+        <qti-assessment-item
+          #qtiAnswers
+          data-id="answers"
+          (qti-assessment-item-connected)="answersConnected($any($event))"
         >
-        @if (!$last) {
-          <span>,</span>
-        } @else {
-          <span>.</span>
-        }
-      }
+          <div [outerHTML]="content.qtiItem | safeHtml"></div>
+        </qti-assessment-item>
+      </mat-card>
     }
   </div>
 </div>

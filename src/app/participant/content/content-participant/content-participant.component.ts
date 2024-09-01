@@ -320,6 +320,7 @@ export class ContentParticipantComponent
       this.prioritizationAnswer = undefined;
       this.numericAnswer = undefined;
       this.wordcloudAnswer = undefined;
+      this.qtiAnswer = undefined;
       return;
     }
     if (

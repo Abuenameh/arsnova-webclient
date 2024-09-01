@@ -15,6 +15,7 @@ import { FormattingService } from '@app/core/services/http/formatting.service';
 import { FormService } from '@app/core/services/util/form.service';
 import { FormComponent } from '@app/standalone/form/form.component';
 import { Content } from '@app/core/models/content';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { ContentForm } from '@app/creator/content-group/content-editing/content-form';
 
 @Component({
@@ -37,6 +38,7 @@ export class QtiContentFormComponent
   @Input() isQuiz = false;
 
   noCorrect = false;
+  showResponses = false;
   qtiItem = '';
 
   constructor(
@@ -51,6 +53,7 @@ export class QtiContentFormComponent
   ngOnInit(): void {
     if (this.isEditMode) {
       this.qtiItem = (this.content as ContentQti).qtiItem;
+      this.showResponses = (this.content as ContentQti).showResponses;
     }
     if (!this.correctAnswerSelection) {
       this.noCorrect = !this.isQuiz;
@@ -60,7 +63,12 @@ export class QtiContentFormComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes.content.currentValue) {
       this.qtiItem = '';
+      this.showResponses = false;
     }
+  }
+
+  changeShowResponses(change: MatCheckboxChange) {
+    this.showResponses = change.checked;
   }
 
   getContent(): Content | undefined {
@@ -69,6 +77,7 @@ export class QtiContentFormComponent
         this.content = new ContentQti();
       }
       (this.content as ContentQti).qtiItem = this.qtiItem;
+      (this.content as ContentQti).showResponses = this.showResponses;
       return this.content;
     } else {
       const msg = this.translationService.translate(

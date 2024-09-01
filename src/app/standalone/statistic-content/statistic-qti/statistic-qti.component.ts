@@ -54,6 +54,7 @@ export class StatisticQtiComponent
   @Input({ required: true }) visualizationUnitChanged!: EventEmitter<boolean>;
   @Input() directShow = false;
   @ViewChild('qtiItem') qtiItem?: ElementRef<QtiAssessmentItem>;
+  @ViewChild('qtiItemAnswers') qtiAnswers?: ElementRef<QtiAssessmentItem>;
 
   data: Array<number[]> = [[], []];
   rounds = 1;
@@ -65,6 +66,7 @@ export class StatisticQtiComponent
   correctResponses?: string[];
   responsesVisible = false;
   responseWeights: ResponseCloudItem[] = [];
+  showResponses = false;
 
   constructor(
     protected contentService: ContentService,
@@ -77,6 +79,7 @@ export class StatisticQtiComponent
   }
 
   init(stats: AnswerStatistics) {
+    this.showResponses = this.content.showResponses;
     this.rounds = this.content.state.round;
     this.roundsToDisplay = this.rounds - 1;
     this.updateData(stats);
@@ -146,5 +149,9 @@ export class StatisticQtiComponent
     }
     this.correctVisible = !this.correctVisible;
     return this.correctVisible;
+  }
+
+  answersConnected(event: CustomEvent) {
+    this.qtiAnswers?.nativeElement.showCorrectResponse(true);
   }
 }
