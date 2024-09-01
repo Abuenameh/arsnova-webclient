@@ -12,7 +12,7 @@ import {
   AdvancedSnackBarTypes,
   NotificationService,
 } from '@app/core/services/util/notification.service';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { EventService } from '@app/core/services/util/event.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GlobalStorageService } from '@app/core/services/util/global-storage.service';
@@ -20,6 +20,7 @@ import { ContentParticipantBaseComponent } from '@app/participant/content/conten
 import { ContentQti } from '@app/core/models/content-qti';
 import { FormService } from '@app/core/services/util/form.service';
 import { ContentQtiAnswerComponent } from '@app/standalone/content-answers/content-qti-answer/content-qti-answer.component';
+import { AnswerResultType } from '@app/core/models/answer-result';
 import { take } from 'rxjs';
 import { ResponseVariable } from '@abuenameh/qti-components';
 
@@ -34,7 +35,6 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
   @Input({ required: true }) content!: ContentQti;
   @Input() answer?: QtiAnswer;
   @Input() correctOptionsPublished = false;
-  @Output() answerChanged = new EventEmitter<QtiAnswer>();
 
   @ViewChild(ContentQtiAnswerComponent) qtiComp?: ContentQtiAnswerComponent;
 
@@ -130,23 +130,26 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
     answer.score = Number(qti?.getOutcome('SCORE').value) || 0;
     answer.maxScore = Number(qti?.getOutcome('MAXSCORE').value) || 0;
     this.answerService
-      .addAnswerQti(this.content.roomId, answer)
-      .subscribe((answer) => {
-        this.givenAnswer = answer;
-        this.translateService
-          .selectTranslate('participant.answer.sent')
-          .pipe(take(1))
-          .subscribe((msg) => {
-            this.notificationService.showAdvanced(
-              msg,
-              AdvancedSnackBarTypes.SUCCESS
-            );
-          });
-        this.sendStatusToParent(answer);
-      }),
-      () => {
-        this.enableForm();
-      };
+      .addAnswerAndCheckResult<QtiAnswer, any>(this.content.roomId, answer)
+      .subscribe({
+        next: (answerResponse) => {
+          this.givenAnswer = answerResponse.answer as QtiAnswer;
+          const state = answerResponse.answerResult.state;
+          this.sendStatusToParent(
+            this.correctOptionsPublished ? state : AnswerResultType.NEUTRAL
+          );
+          const msg = this.translateService.translate(
+            'participant.answer.sent'
+          );
+          this.notificationService.showAdvanced(
+            msg,
+            AdvancedSnackBarTypes.SUCCESS
+          );
+        },
+        error: () => {
+          this.enableForm();
+        },
+      });
   }
 
   abstain() {
@@ -160,7 +163,7 @@ export class ContentQtiParticipantComponent extends ContentParticipantBaseCompon
       .subscribe((answer) => {
         this.givenAnswer = answer;
         this.hasAbstained = true;
-        this.sendStatusToParent(answer);
+        this.sendStatusToParent(AnswerResultType.ABSTAINED);
       }),
       () => {
         this.enableForm();

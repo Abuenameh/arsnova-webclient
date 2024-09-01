@@ -356,6 +356,7 @@ export class ContentParticipantComponent
     this.numericAnswer = undefined;
     this.wordcloudAnswer = undefined;
     this.shortAnswerAnswer = undefined;
+    this.qtiAnswer = undefined;
   }
 
   initAnswerData() {

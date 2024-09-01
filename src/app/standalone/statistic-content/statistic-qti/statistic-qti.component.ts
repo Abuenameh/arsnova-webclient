@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { ContentService } from '@app/core/services/http/content.service';
 import { ContentQti } from '@app/core/models/content-qti';
-import { TranslocoService, TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { ThemeService } from '@app/core/theme/theme.service';
 import { AnswerStatistics } from '@app/core/models/answer-statistics';
 import { QtiRoundStatistics } from '@app/core/models/round-statistics';
@@ -72,10 +72,9 @@ export class StatisticQtiComponent
     protected contentService: ContentService,
     protected translateService: TranslocoService,
     protected themeService: ThemeService,
-    protected eventService: EventService,
     protected presentationService: PresentationService
   ) {
-    super(contentService, eventService, translateService);
+    super(contentService, translateService);
   }
 
   init(stats: AnswerStatistics) {
