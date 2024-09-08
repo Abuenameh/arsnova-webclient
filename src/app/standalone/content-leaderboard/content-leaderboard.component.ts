@@ -16,7 +16,7 @@ import { ThemeService } from '@app/core/theme/theme.service';
 
 interface LeaderboardTableItem {
   position: number;
-  alias: RoomUserAlias;
+  alias?: RoomUserAlias;
   score: number;
   currentPoints: number;
   currentDuration: number;
@@ -40,11 +40,8 @@ export class ContentLeaderboardComponent implements AfterViewInit, OnChanges {
 
   dataSource?: MatTableDataSource<LeaderboardTableItem>;
   displayedColumns = ['position', 'name', 'score'];
-  colors: string[];
 
-  constructor(private themeService: ThemeService) {
-    this.colors = this.themeService.getTextColors();
-  }
+  constructor(private themeService: ThemeService) {}
 
   ngOnChanges(): void {
     if (
@@ -57,7 +54,7 @@ export class ContentLeaderboardComponent implements AfterViewInit, OnChanges {
     this.leaderboardItems.forEach((item, index) => {
       if (
         index < 10 ||
-        (!this.isInTopTen() && item.userAlias.id === this.aliasId)
+        (!this.isInTopTen() && item.userAlias?.id === this.aliasId)
       ) {
         tableItems.push({
           position: index + 1,
@@ -81,7 +78,11 @@ export class ContentLeaderboardComponent implements AfterViewInit, OnChanges {
   private isInTopTen(): boolean {
     return this.leaderboardItems
       .slice(0, 10)
-      .map((l) => l.userAlias.id)
+      .map((l) => l.userAlias?.id)
       .includes(this.aliasId);
+  }
+
+  getColor(seed?: number): string {
+    return this.themeService.getTextColorFromSeed(seed);
   }
 }

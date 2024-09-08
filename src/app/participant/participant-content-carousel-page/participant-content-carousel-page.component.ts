@@ -70,7 +70,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     BaseCardComponent,
     ContentWaitingComponent,
   ],
-  providers: [FocusModeService],
 })
 export class ParticipantContentCarouselPageComponent
   implements OnInit, OnDestroy
@@ -80,6 +79,7 @@ export class ParticipantContentCarouselPageComponent
   private destroyed$ = new Subject<void>();
 
   ContentType: typeof ContentType = ContentType;
+  PublishingMode = PublishingMode;
 
   contents: Content[] = [];
   contentGroup: ContentGroup;
@@ -89,7 +89,7 @@ export class ParticipantContentCarouselPageComponent
   answerResults = new Map<number, AnswerResultType>();
   AnswerResultType = AnswerResultType;
   userId?: string;
-  currentStep = 0;
+  currentStep?: number;
   isReloading = false;
   isReloadingCurrentContent = false;
   displaySnackBar = false;
@@ -198,6 +198,10 @@ export class ParticipantContentCarouselPageComponent
               });
             });
         }
+        if (this.showOverview && route.params['contentIndex']) {
+          this.showOverview = false;
+          this.initStepper(route.params['contentIndex'] - 1);
+        }
       });
   }
 
@@ -249,7 +253,14 @@ export class ParticipantContentCarouselPageComponent
         )
         .subscribe((contents: Content[]) => {
           this.contents = this.contentService.getSupportedContents(
-            contents.filter((c) => !!c)
+            contents.filter(
+              (c, i) =>
+                !!c &&
+                this.contentPublishService.isIndexPublished(
+                  this.contentGroup,
+                  i
+                )
+            )
           );
           if (nextContentId) {
             lastContentIndex = this.getIndexOfContentById(nextContentId);
@@ -387,7 +398,10 @@ export class ParticipantContentCarouselPageComponent
   }
 
   nextContent() {
-    if (this.currentStep < this.contents.length - 1) {
+    if (
+      this.currentStep !== undefined &&
+      this.currentStep < this.contents.length - 1
+    ) {
       this.stepper.next();
     } else {
       this.goToOverview();
@@ -396,13 +410,7 @@ export class ParticipantContentCarouselPageComponent
 
   goToOverview() {
     this.showOverview = true;
-    // Using `onSameUrlNavigation` reload strategy to reload components on routing if only params have been removed
-    this.router.navigate(
-      ['p', this.shortId, 'series', this.contentGroup.name],
-      {
-        onSameUrlNavigation: 'reload',
-      }
-    );
+    this.replaceUrl(['p', this.shortId, 'series', this.contentGroup.name]);
   }
 
   replaceUrl(url: any[]) {
@@ -532,7 +540,9 @@ export class ParticipantContentCarouselPageComponent
       return;
     }
     const attribution = this.attributions.find(
-      (a) => a.contentId === this.contents[this.currentStep].id
+      (a) =>
+        this.currentStep !== undefined &&
+        a.contentId === this.contents[this.currentStep].id
     );
     if (!attribution || attribution.license === 'CC0-1.0') {
       return;
@@ -542,7 +552,7 @@ export class ParticipantContentCarouselPageComponent
       {
         attribution:
           attribution.attribution ||
-          this.translateService.translate('templates.anonymous'),
+          this.translateService.translate('general.anonymous'),
         license: LICENSES.get(attribution.license)?.name,
       }
     );

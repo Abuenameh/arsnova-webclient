@@ -9,7 +9,7 @@ import { ThemeService } from '@app/core/theme/theme.service';
 
 interface LeaderboardTableItem {
   position: number;
-  userAlias: RoomUserAlias;
+  userAlias?: RoomUserAlias;
   score: number;
 }
 
@@ -25,18 +25,15 @@ export class LeaderboardComponent implements OnChanges {
   @Input() aliasId?: string;
 
   dataSource?: MatTableDataSource<LeaderboardTableItem>;
-  colors: string[];
 
-  constructor(private themeService: ThemeService) {
-    this.colors = this.themeService.getTextColors();
-  }
+  constructor(private themeService: ThemeService) {}
 
   ngOnChanges(): void {
     const tableItems: LeaderboardTableItem[] = [];
     this.leaderboardItems.forEach((item, index) => {
       if (
         index < 10 ||
-        (this.showBelowList() && item.userAlias.id === this.aliasId)
+        (this.showBelowList() && item.userAlias?.id === this.aliasId)
       ) {
         tableItems.push({
           position: index + 1,
@@ -52,9 +49,13 @@ export class LeaderboardComponent implements OnChanges {
     if (this.aliasId) {
       return !this.leaderboardItems
         .slice(0, 10)
-        .map((l) => l.userAlias.id)
+        .map((l) => l.userAlias?.id)
         .includes(this.aliasId);
     }
     return false;
+  }
+
+  getColor(seed?: number): string {
+    return this.themeService.getTextColorFromSeed(seed);
   }
 }

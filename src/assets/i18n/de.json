@@ -408,7 +408,9 @@
     "content-count": "{{count}} Inhalte",
     "answer-fast-to-get-more-points": "Antworte schnell, um mehr Punkte zu bekommen",
     "answer-correct-to-get-points": "Antworte richtig, um Punkte zu bekommen",
-    "contents-will-be-published-gradually": "Die Inhalte werden nach und nach freigegeben"
+    "contents-will-be-published-gradually": "Die Inhalte werden nach und nach freigegeben",
+    "flashcard-front": "Vorderseite",
+    "flashcard-back": "Rückseite"
   },
   "answer": {
     "word": "Schlagwort",
@@ -572,7 +574,6 @@
     "contents": "Inhalte",
     "licensed-under": "Lizenziert unter",
     "by": "von",
-    "anonymous": "Anonym",
     "use": "Verwenden",
     "template-added": "Die Vorlage wurde hinzugefügt.",
     "preview": "Vorschau",
@@ -612,7 +613,8 @@
   },
   "general": {
     "a11y-remove-filter": "Filter entfernen",
-    "not-specified": "Nicht festegelegt"
+    "not-specified": "Nicht festegelegt",
+    "anonymous": "Anonym"
   },
   "ordinal": {
     "one": "",
